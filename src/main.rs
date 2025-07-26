@@ -1,8 +1,9 @@
-use std::{
-    io::{BufWriter, Write},
-    thread::sleep,
-    time::Duration,
-};
+use crate::color::Color;
+use crate::vec3::Vec3;
+use std::io::{BufWriter, Write};
+
+mod color;
+mod vec3;
 
 fn main() -> std::io::Result<()> {
     // Image
@@ -21,15 +22,13 @@ fn main() -> std::io::Result<()> {
         print!("Rendering line: {}/{}\r", i + 1, IMAGE_HEIGHT);
         std::io::stdout().flush()?;
         for j in 0..IMAGE_WIDTH {
-            let r = i as f32 / (IMAGE_WIDTH - 1) as f32;
-            let g = j as f32 / (IMAGE_HEIGHT - 1) as f32;
-            let b = 0.0;
+            let color = Color(Vec3::new(
+                i as f32 / (IMAGE_WIDTH - 1) as f32,
+                j as f32 / (IMAGE_HEIGHT - 1) as f32,
+                0.0,
+            ));
 
-            let ir = (255.999 * r) as u32;
-            let ig = (255.999 * g) as u32;
-            let ib = (255.999 * b) as u32;
-
-            writeln!(out, "{ir} {ig} {ib}")?;
+            writeln!(out, "{color}")?;
         }
     }
 
