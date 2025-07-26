@@ -9,11 +9,11 @@ pub(crate) struct Vec3 {
 
 #[allow(dead_code)]
 impl Vec3 {
-    pub(crate) fn new(x: f32, y: f32, z: f32) -> Self {
+    pub(crate) const fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3 { x, y, z }
     }
 
-    pub(crate) fn length_squared(&self) -> f32 {
+    pub(crate) const fn length_squared(&self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
@@ -21,11 +21,11 @@ impl Vec3 {
         self.length_squared().sqrt()
     }
 
-    pub(crate) fn dot(&self, rhs: Vec3) -> f32 {
+    pub(crate) const fn dot(&self, rhs: Vec3) -> f32 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 
-    pub(crate) fn cross(&self, rhs: Vec3) -> Vec3 {
+    pub(crate) const fn cross(&self, rhs: Vec3) -> Vec3 {
         Vec3 {
             x: self.y * rhs.z - self.z * rhs.y,
             y: self.z * rhs.x - self.x * rhs.z,
@@ -62,42 +62,54 @@ impl ops::Sub<Vec3> for Vec3 {
     }
 }
 
-impl ops::Mul<f32> for Vec3 {
+impl<T> ops::Mul<T> for Vec3
+where
+    T: Into<f32> + Copy,
+{
     type Output = Vec3;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: T) -> Self::Output {
         Vec3 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
+            x: self.x * rhs.into(),
+            y: self.y * rhs.into(),
+            z: self.z * rhs.into(),
         }
     }
 }
 
-impl ops::MulAssign<f32> for Vec3 {
-    fn mul_assign(&mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-        self.z *= rhs;
+impl<T> ops::MulAssign<T> for Vec3
+where
+    T: Into<f32> + Copy,
+{
+    fn mul_assign(&mut self, rhs: T) {
+        self.x *= rhs.into();
+        self.y *= rhs.into();
+        self.z *= rhs.into();
     }
 }
 
-impl ops::Div<f32> for Vec3 {
+impl<T> ops::Div<T> for Vec3
+where
+    T: Into<f32> + Copy,
+{
     type Output = Vec3;
 
-    fn div(self, rhs: f32) -> Self::Output {
+    fn div(self, rhs: T) -> Self::Output {
         Vec3 {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
+            x: self.x / rhs.into(),
+            y: self.y / rhs.into(),
+            z: self.z / rhs.into(),
         }
     }
 }
 
-impl ops::DivAssign<f32> for Vec3 {
-    fn div_assign(&mut self, rhs: f32) {
-        self.x /= rhs;
-        self.y /= rhs;
-        self.z /= rhs;
+impl<T> ops::DivAssign<T> for Vec3
+where
+    T: Into<f32> + Copy,
+{
+    fn div_assign(&mut self, rhs: T) {
+        self.x /= rhs.into();
+        self.y /= rhs.into();
+        self.z /= rhs.into();
     }
 }
