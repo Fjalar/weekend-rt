@@ -54,7 +54,7 @@ fn main() -> std::io::Result<()> {
         std::io::stdout().flush()?;
         for j in 0..IMAGE_WIDTH {
             let pixel_center: Point =
-                (PIXEL00_LOC + (PIXEL_DELTA_U * j as f32) + (PIXEL_DELTA_V * i as f32)).into();
+                PIXEL00_LOC + (PIXEL_DELTA_U * j as f32) + (PIXEL_DELTA_V * i as f32);
 
             let ray_direction = pixel_center - CAMERA_CENTER;
 
@@ -74,19 +74,32 @@ fn main() -> std::io::Result<()> {
 }
 
 pub(crate) fn ray_color(ray: Ray) -> Color {
-    if hit_sphere(Point::new(0.0, 0.0, -1.0), 0.5, ray) {
-        return Color::new(1.0, 0.0, 0.0);
+    let t = hit_sphere(Point::new(0.0, 0.0, -1.0), 0.5, ray);
+
+    if t != -1.0 {
+        println!("{t}");
     }
+
+    if t > 0.0 {
+        let normal = ray.at(t) - Vec3::new(0.0, 0.0, -1.0);
+        return 0.5 * Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0);
+    }
+
     let unit_direction = ray.direction.unit();
     let a = (unit_direction.y + 1.0) * 0.5;
     (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
 }
 
-pub(crate) fn hit_sphere(center: Point, radius: f32, ray: Ray) -> bool {
-    let origin_to_center = center - ray.origin;
-    let a = ray.direction.dot(ray.direction);
-    let b = -2.0 * ray.direction.dot(origin_to_center);
-    let c = origin_to_center.dot(origin_to_center) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-    discriminant >= 0.0
+pub(crate) fn hit_sphere(center: Point, radius: f32, ray: Ray) -> f32 {
+    let ray_to_sphere = center - ray.origin;
+    let a = ray.direction.length_squared();
+    let h = ray.direction.dot(ray_to_sphere);
+    let c = ray_to_sphere.length_squared() - radius * radius;
+    let discriminant = h * h - a * c;
+
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        -(h - discriminant.sqrt()) / a
+    }
 }
