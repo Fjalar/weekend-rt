@@ -2,6 +2,7 @@ use crate::point::Point;
 use crate::vec3::Vec3;
 
 #[allow(dead_code)]
+#[derive(Clone, Copy)]
 pub(crate) struct Ray {
     pub(crate) origin: Point,
     pub(crate) direction: Vec3,
@@ -14,6 +15,6 @@ impl Ray {
     }
 
     pub(crate) fn at(&self, distance: f32) -> Point {
-        Point(self.origin.0 + self.direction * distance)
+        self.origin + self.direction * distance
     }
 }

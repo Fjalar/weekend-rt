@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
     const FOCAL_LENGTH: f32 = 1.0;
     const VIEWPORT_HEIGHT: f32 = 2.0;
     const VIEWPORT_WIDTH: f32 = VIEWPORT_HEIGHT * ((IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32));
-    const CAMERA_CENTER: Point = Point(Vec3::new(0.0, 0.0, 0.0));
+    const CAMERA_CENTER: Point = Point::new(0.0, 0.0, 0.0);
 
     // Viewport vectors, u horizontal, v vertical (down)
     const VIEWPORT_U: Vec3 = Vec3::new(VIEWPORT_WIDTH, 0.0, 0.0);
@@ -37,11 +37,10 @@ fn main() -> std::io::Result<()> {
     let PIXEL_DELTA_V: Vec3 = VIEWPORT_V / (IMAGE_HEIGHT as f32);
 
     // Location of upper left pixel
-    let VIEWPORT_UPPER_LEFT: Point = Point(
-        CAMERA_CENTER.0 - Vec3::new(0.0, 0.0, FOCAL_LENGTH) - VIEWPORT_U / 2.0 - VIEWPORT_V / 2.0,
-    );
+    let VIEWPORT_UPPER_LEFT: Point =
+        CAMERA_CENTER - Vec3::new(0.0, 0.0, FOCAL_LENGTH) - VIEWPORT_U / 2.0 - VIEWPORT_V / 2.0;
 
-    let PIXEL00_LOC = VIEWPORT_UPPER_LEFT.0 + (PIXEL_DELTA_U + PIXEL_DELTA_V) * 0.5;
+    let PIXEL00_LOC = VIEWPORT_UPPER_LEFT + (PIXEL_DELTA_U + PIXEL_DELTA_V) * 0.5;
 
     // Render
 
@@ -54,10 +53,10 @@ fn main() -> std::io::Result<()> {
         print!("Rendering line: {}/{}\r", i + 1, IMAGE_HEIGHT);
         std::io::stdout().flush()?;
         for j in 0..IMAGE_WIDTH {
-            let pixel_center =
-                Point(PIXEL00_LOC + (PIXEL_DELTA_U * j as f32) + (PIXEL_DELTA_V * i as f32));
+            let pixel_center: Point =
+                (PIXEL00_LOC + (PIXEL_DELTA_U * j as f32) + (PIXEL_DELTA_V * i as f32)).into();
 
-            let ray_direction = pixel_center.0 - CAMERA_CENTER.0;
+            let ray_direction = pixel_center - CAMERA_CENTER;
 
             let ray = Ray::new(pixel_center, ray_direction);
 
@@ -75,7 +74,19 @@ fn main() -> std::io::Result<()> {
 }
 
 pub(crate) fn ray_color(ray: Ray) -> Color {
+    if hit_sphere(Point::new(0.0, 0.0, -1.0), 0.5, ray) {
+        return Color::new(1.0, 0.0, 0.0);
+    }
     let unit_direction = ray.direction.unit();
     let a = (unit_direction.y + 1.0) * 0.5;
     (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+}
+
+pub(crate) fn hit_sphere(center: Point, radius: f32, ray: Ray) -> bool {
+    let origin_to_center = center - ray.origin;
+    let a = ray.direction.dot(ray.direction);
+    let b = -2.0 * ray.direction.dot(origin_to_center);
+    let c = origin_to_center.dot(origin_to_center) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant >= 0.0
 }
