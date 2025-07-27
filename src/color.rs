@@ -2,36 +2,26 @@ use std::ops;
 
 use crate::vec3::Vec3;
 
-pub(crate) struct Color(pub(crate) Vec3);
+pub(crate) struct Color {
+    pub(crate) r: f32,
+    pub(crate) g: f32,
+    pub(crate) b: f32,
+}
 
 impl std::fmt::Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let rbyte = (255.999 * self.0.x) as u8;
-        let gbyte = (255.999 * self.0.y) as u8;
-        let bbyte = (255.999 * self.0.z) as u8;
+        let rbyte = (255.999 * self.r) as u8;
+        let gbyte = (255.999 * self.g) as u8;
+        let bbyte = (255.999 * self.b) as u8;
 
         write!(f, "{rbyte} {gbyte} {bbyte}",)
     }
 }
 
-impl std::ops::Deref for Color {
-    type Target = Vec3;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl std::ops::DerefMut for Color {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
 #[allow(dead_code)]
 impl Color {
-    pub(crate) const fn new(x: f32, y: f32, z: f32) -> Self {
-        Color(Vec3::new(x, y, z))
+    pub(crate) const fn new(r: f32, g: f32, b: f32) -> Self {
+        Color { r, g, b }
     }
 }
 
@@ -39,7 +29,7 @@ impl ops::Add<Color> for Color {
     type Output = Color;
 
     fn add(self, rhs: Color) -> Self::Output {
-        Color::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+        Color::new(self.r + rhs.r, self.g + rhs.g, self.b + rhs.b)
     }
 }
 
@@ -47,7 +37,7 @@ impl ops::Sub<Color> for Color {
     type Output = Color;
 
     fn sub(self, rhs: Color) -> Self::Output {
-        Color::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+        Color::new(self.r - rhs.r, self.g - rhs.g, self.b - rhs.b)
     }
 }
 
@@ -59,9 +49,9 @@ where
 
     fn mul(self, rhs: T) -> Self::Output {
         Color::new(
-            self.x * rhs.into(),
-            self.y * rhs.into(),
-            self.z * rhs.into(),
+            self.r * rhs.into(),
+            self.g * rhs.into(),
+            self.b * rhs.into(),
         )
     }
 }
@@ -71,9 +61,9 @@ where
     T: Into<f32> + Copy,
 {
     fn mul_assign(&mut self, rhs: T) {
-        self.x *= rhs.into();
-        self.y *= rhs.into();
-        self.z *= rhs.into();
+        self.r *= rhs.into();
+        self.g *= rhs.into();
+        self.b *= rhs.into();
     }
 }
 
@@ -85,9 +75,9 @@ where
 
     fn div(self, rhs: T) -> Self::Output {
         Color::new(
-            self.x / rhs.into(),
-            self.y / rhs.into(),
-            self.z / rhs.into(),
+            self.r / rhs.into(),
+            self.g / rhs.into(),
+            self.b / rhs.into(),
         )
     }
 }
@@ -97,8 +87,14 @@ where
     T: Into<f32> + Copy,
 {
     fn div_assign(&mut self, rhs: T) {
-        self.x /= rhs.into();
-        self.y /= rhs.into();
-        self.z /= rhs.into();
+        self.r /= rhs.into();
+        self.g /= rhs.into();
+        self.b /= rhs.into();
+    }
+}
+
+impl From<Vec3> for Color {
+    fn from(value: Vec3) -> Self {
+        Color::new(value.x, value.y, value.z)
     }
 }

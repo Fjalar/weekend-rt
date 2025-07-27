@@ -77,5 +77,5 @@ fn main() -> std::io::Result<()> {
 pub(crate) fn ray_color(ray: Ray) -> Color {
     let unit_direction = ray.direction.unit();
     let a = (unit_direction.y + 1.0) * 0.5;
-    Color(Vec3::new(1.0, 1.0, 1.0)) * (1.0 - a) + Color(Vec3::new(0.5, 0.7, 1.0)) * a
+    Color::new(1.0, 1.0, 1.0) * (1.0 - a) + Color::new(0.5, 0.7, 1.0) * a
 }
