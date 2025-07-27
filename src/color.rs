@@ -2,6 +2,7 @@ use std::ops;
 
 use crate::vec3::Vec3;
 
+#[derive(Clone, Copy, Debug)]
 pub(crate) struct Color {
     pub(crate) r: f32,
     pub(crate) g: f32,
@@ -18,7 +19,6 @@ impl std::fmt::Display for Color {
     }
 }
 
-#[allow(dead_code)]
 impl Color {
     pub(crate) const fn new(r: f32, g: f32, b: f32) -> Self {
         Color { r, g, b }

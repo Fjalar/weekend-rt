@@ -58,7 +58,7 @@ fn main() -> std::io::Result<()> {
 
             let ray_direction = pixel_center - CAMERA_CENTER;
 
-            let ray = Ray::new(pixel_center, ray_direction);
+            let ray = Ray::new(CAMERA_CENTER, ray_direction);
 
             let color = ray_color(ray);
 
@@ -75,10 +75,6 @@ fn main() -> std::io::Result<()> {
 
 pub(crate) fn ray_color(ray: Ray) -> Color {
     let t = hit_sphere(Point::new(0.0, 0.0, -1.0), 0.5, ray);
-
-    if t != -1.0 {
-        println!("{t}");
-    }
 
     if t > 0.0 {
         let normal = ray.at(t) - Vec3::new(0.0, 0.0, -1.0);
@@ -100,6 +96,6 @@ pub(crate) fn hit_sphere(center: Point, radius: f32, ray: Ray) -> f32 {
     if discriminant < 0.0 {
         -1.0
     } else {
-        -(h - discriminant.sqrt()) / a
+        (h - discriminant.sqrt()) / a
     }
 }
