@@ -77,7 +77,7 @@ pub(crate) fn ray_color(ray: Ray) -> Color {
     let t = hit_sphere(Point::new(0.0, 0.0, -1.0), 0.5, ray);
 
     if t > 0.0 {
-        let normal = ray.at(t) - Vec3::new(0.0, 0.0, -1.0);
+        let normal: Vec3 = Vec3::from(ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit();
         return 0.5 * Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0);
     }
 

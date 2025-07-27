@@ -1,6 +1,6 @@
 use std::ops;
 
-use crate::color::Color;
+use crate::{color::Color, point::Point};
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Vec3 {
@@ -143,5 +143,11 @@ where
 impl From<Color> for Vec3 {
     fn from(value: Color) -> Self {
         Vec3::new(value.r, value.g, value.b)
+    }
+}
+
+impl From<Point> for Vec3 {
+    fn from(value: Point) -> Self {
+        Vec3::new(value.x, value.y, value.z)
     }
 }
