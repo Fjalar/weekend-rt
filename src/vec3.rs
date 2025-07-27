@@ -79,6 +79,18 @@ where
     }
 }
 
+impl ops::Mul<Vec3> for f32 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Vec3) -> Self::Output {
+        Vec3 {
+            x: rhs.x * self,
+            y: rhs.y * self,
+            z: rhs.z * self,
+        }
+    }
+}
+
 impl<T> ops::MulAssign<T> for Vec3
 where
     T: Into<f32> + Copy,
@@ -101,6 +113,18 @@ where
             x: self.x / rhs.into(),
             y: self.y / rhs.into(),
             z: self.z / rhs.into(),
+        }
+    }
+}
+
+impl ops::Div<Vec3> for f32 {
+    type Output = Vec3;
+
+    fn div(self, rhs: Vec3) -> Self::Output {
+        Vec3 {
+            x: rhs.x / self,
+            y: rhs.y / self,
+            z: rhs.z / self,
         }
     }
 }

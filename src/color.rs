@@ -56,6 +56,18 @@ where
     }
 }
 
+impl ops::Mul<Color> for f32 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color {
+            r: rhs.r * self,
+            g: rhs.g * self,
+            b: rhs.b * self,
+        }
+    }
+}
+
 impl<T> ops::MulAssign<T> for Color
 where
     T: Into<f32> + Copy,
@@ -90,6 +102,18 @@ where
         self.r /= rhs.into();
         self.g /= rhs.into();
         self.b /= rhs.into();
+    }
+}
+
+impl ops::Div<Color> for f32 {
+    type Output = Color;
+
+    fn div(self, rhs: Color) -> Self::Output {
+        Color {
+            r: rhs.r / self,
+            g: rhs.g / self,
+            b: rhs.b / self,
+        }
     }
 }
 
