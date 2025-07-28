@@ -125,7 +125,7 @@ impl Camera {
     }
 
     fn ray_color(&mut self, ray: Ray, depth: u32, world: &mut HittableList) -> Color {
-        if depth <= 0 {
+        if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
 
