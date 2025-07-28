@@ -1,6 +1,6 @@
 use std::ops;
 
-use crate::vec3::Vec3;
+use crate::{interval::Interval, vec3::Vec3};
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Color {
@@ -11,9 +11,10 @@ pub(crate) struct Color {
 
 impl std::fmt::Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let rbyte = (255.999 * self.r) as u8;
-        let gbyte = (255.999 * self.g) as u8;
-        let bbyte = (255.999 * self.b) as u8;
+        const INTENSITY: Interval = Interval::new(0.0, 0.999);
+        let rbyte = (256.0 * INTENSITY.clamp(self.r)) as u8;
+        let gbyte = (256.0 * INTENSITY.clamp(self.g)) as u8;
+        let bbyte = (256.0 * INTENSITY.clamp(self.b)) as u8;
 
         write!(f, "{rbyte} {gbyte} {bbyte}",)
     }

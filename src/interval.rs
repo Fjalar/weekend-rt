@@ -14,7 +14,7 @@ impl Default for Interval {
     }
 }
 impl Interval {
-    pub(crate) fn new(min: f32, max: f32) -> Interval {
+    pub(crate) const fn new(min: f32, max: f32) -> Interval {
         Interval { min, max }
     }
 
@@ -28,6 +28,16 @@ impl Interval {
 
     pub(crate) fn surrounds(&self, x: f32) -> bool {
         self.min < x && x < self.max
+    }
+
+    pub(crate) fn clamp(&self, x: f32) -> f32 {
+        if x < self.min {
+            self.min
+        } else if x > self.max {
+            self.max
+        } else {
+            x
+        }
     }
 
     pub(crate) fn empty() -> Self {
