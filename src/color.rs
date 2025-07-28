@@ -11,10 +11,16 @@ pub(crate) struct Color {
 
 impl std::fmt::Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Gamma correction
+        let r_corrected = Self::linear_to_gamma(self.r);
+        let g_corrected = Self::linear_to_gamma(self.g);
+        let b_corrected = Self::linear_to_gamma(self.b);
+
+        // Clamp to 0..255
         const INTENSITY: Interval = Interval::new(0.0, 0.999);
-        let rbyte = (256.0 * INTENSITY.clamp(self.r)) as u8;
-        let gbyte = (256.0 * INTENSITY.clamp(self.g)) as u8;
-        let bbyte = (256.0 * INTENSITY.clamp(self.b)) as u8;
+        let rbyte = (256.0 * INTENSITY.clamp(r_corrected)) as u8;
+        let gbyte = (256.0 * INTENSITY.clamp(g_corrected)) as u8;
+        let bbyte = (256.0 * INTENSITY.clamp(b_corrected)) as u8;
 
         write!(f, "{rbyte} {gbyte} {bbyte}",)
     }
@@ -23,6 +29,14 @@ impl std::fmt::Display for Color {
 impl Color {
     pub(crate) const fn new(r: f32, g: f32, b: f32) -> Self {
         Color { r, g, b }
+    }
+
+    fn linear_to_gamma(linear_component: f32) -> f32 {
+        if linear_component > 0.0 {
+            linear_component.sqrt()
+        } else {
+            0.0
+        }
     }
 }
 
