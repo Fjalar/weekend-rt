@@ -91,6 +91,14 @@ impl ops::Mul<Color> for f32 {
     }
 }
 
+impl ops::Mul<Color> for Color {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color::new(self.r * rhs.r, self.g * rhs.g, self.b * rhs.b)
+    }
+}
+
 impl<T> ops::MulAssign<T> for Color
 where
     T: Into<f32> + Copy,

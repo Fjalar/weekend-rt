@@ -1,15 +1,14 @@
 use std::rc::Rc;
 
-use crate::{color::Color, interval::Interval, point::Point, ray::Ray, vec3::Vec3};
-
-pub(crate) trait Material {
-    fn scatter(&self, ray: Ray, hit_record: HitRecord, attenuation: Color, scattered: Ray);
-}
+use crate::{
+    color::Color, interval::Interval, material::Material, point::Point, ray::Ray, vec3::Vec3,
+};
 
 #[derive(Clone)]
 pub(crate) struct HitRecord {
     pub(crate) position: Point,
     pub(crate) normal: Vec3,
+    pub(crate) material: Rc<dyn Material>,
     pub(crate) t: f32,
     pub(crate) front_face: bool,
 }
@@ -25,7 +24,7 @@ impl HitRecord {
         }
     }
 
-    pub(crate) fn new(ray: Ray, t: f32, outward_normal: Vec3) -> Self {
+    pub(crate) fn new(ray: Ray, t: f32, outward_normal: Vec3, material: Rc<dyn Material>) -> Self {
         let position = ray.at(t);
 
         let front_face = ray.direction.dot(outward_normal) < 0.0;
@@ -38,6 +37,7 @@ impl HitRecord {
         HitRecord {
             position,
             normal,
+            material,
             t,
             front_face,
         }

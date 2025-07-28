@@ -1,4 +1,4 @@
-use rand::prelude::*;
+use rand::{prelude::*, rng};
 use std::io::{BufWriter, Write};
 
 use crate::{
@@ -124,12 +124,18 @@ impl Camera {
         Vec3::new(i, j, 0.0)
     }
 
-    fn ray_color(&mut self, ray: Ray, depth: u32, world: &mut HittableList) -> Color {
+    fn ray_color(&mut self, ray: Ray, depth: u32, world: &HittableList) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
 
         if let Some(hit) = world.hit(ray, Interval::new(0.001, f32::INFINITY)) {
+            if let (scattered_ray, attenuation) =
+                hit.material.scatter(&mut self.rng, ray, hit.t, hit.normal)
+            {
+                // Guide shows attenuation * ray_color(...) here, what? multiplying colors together?
+                return attenuation * self.ray_color(scattered_ray, depth - 1, world);
+            }
             let direction = hit.normal + Vec3::random_unit_vector(&mut self.rng);
             return 0.5
                 * Self::ray_color(self, Ray::new(hit.position, direction), depth - 1, world);

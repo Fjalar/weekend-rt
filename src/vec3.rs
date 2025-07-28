@@ -73,8 +73,17 @@ impl Vec3 {
         }
     }
 
+    pub(crate) fn reflect(&self, normal: Vec3) -> Vec3 {
+        *self - normal * (2.0 * self.dot(normal))
+    }
+
     pub(crate) fn unit(&self) -> Vec3 {
         *self / self.length()
+    }
+
+    pub(crate) const fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
     }
 }
 
