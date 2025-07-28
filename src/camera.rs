@@ -1,3 +1,4 @@
+use rand::prelude::*;
 use std::io::{BufWriter, Write};
 
 use crate::{
@@ -17,6 +18,8 @@ pub(crate) struct Camera {
     pub(crate) pixel00_loc: Point,
     pub(crate) pixel_delta_u: Vec3,
     pub(crate) pixel_delta_v: Vec3,
+    pub(crate) samples_per_pixel: u32,
+    pub(crate) rng: ThreadRng,
 }
 
 impl Camera {
@@ -32,17 +35,17 @@ impl Camera {
             print!("Rendering line: {}/{}\r", i + 1, self.image_height);
             std::io::stdout().flush()?;
             for j in 0..self.image_width {
-                let pixel_center: Point = self.pixel00_loc
-                    + (self.pixel_delta_u * j as f32)
-                    + (self.pixel_delta_v * i as f32);
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-                let ray_direction = pixel_center - self.center;
+                for _ in 0..self.samples_per_pixel {
+                    let ray = Self::get_ray(self, j, i);
 
-                let ray = Ray::new(self.center, ray_direction);
+                    pixel_color += Self::ray_color(ray, world);
+                }
 
-                let color = Self::ray_color(ray, world);
+                pixel_color /= self.samples_per_pixel as f32;
 
-                writeln!(out, "{color}")?;
+                writeln!(out, "{pixel_color}")?;
             }
         }
 
@@ -94,7 +97,29 @@ impl Camera {
             pixel00_loc: PIXEL00_LOC,
             pixel_delta_u: PIXEL_DELTA_U,
             pixel_delta_v: PIXEL_DELTA_V,
+            samples_per_pixel: 100,
+            rng: rand::rng(),
         }
+    }
+
+    fn get_ray(&mut self, i: u32, j: u32) -> Ray {
+        // Construct ray for pixel (i, j), where (0,0) is top left of screen and (IMAGE_WIDTH, IMAGE_HEIGHT) is bottom right
+        let offset = Self::sample_square(self);
+
+        let pixel_sample = self.pixel00_loc
+            + ((i as f32 + offset.x) * self.pixel_delta_u)
+            + ((j as f32 + offset.y) * self.pixel_delta_v);
+
+        let ray_origin = self.center;
+        let ray_direction = pixel_sample - ray_origin;
+
+        Ray::new(ray_origin, ray_direction)
+    }
+
+    fn sample_square(&mut self) -> Vec3 {
+        let i = self.rng.random_range(-0.5..0.5);
+        let j = self.rng.random_range(-0.5..0.5);
+        Vec3::new(i, j, 0.0)
     }
 
     fn ray_color(ray: Ray, world: &mut HittableList) -> Color {
