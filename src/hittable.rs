@@ -1,8 +1,12 @@
 use std::rc::Rc;
 
-use crate::{interval::Interval, point::Point, ray::Ray, vec3::Vec3};
+use crate::{color::Color, interval::Interval, point::Point, ray::Ray, vec3::Vec3};
 
-#[derive(Clone, Copy, Default)]
+pub(crate) trait Material {
+    fn scatter(&self, ray: Ray, hit_record: HitRecord, attenuation: Color, scattered: Ray);
+}
+
+#[derive(Clone)]
 pub(crate) struct HitRecord {
     pub(crate) position: Point,
     pub(crate) normal: Vec3,
@@ -20,10 +24,28 @@ impl HitRecord {
             -1.0 * outward_normal
         }
     }
+
+    pub(crate) fn new(ray: Ray, t: f32, outward_normal: Vec3) -> Self {
+        let position = ray.at(t);
+
+        let front_face = ray.direction.dot(outward_normal) < 0.0;
+        let normal = if front_face {
+            outward_normal
+        } else {
+            -1.0 * outward_normal
+        };
+
+        HitRecord {
+            position,
+            normal,
+            t,
+            front_face,
+        }
+    }
 }
 
 pub(crate) trait Hittable {
-    fn hit(&self, ray: Ray, ray_interval: Interval, hit_record: &mut HitRecord) -> bool;
+    fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord>;
 }
 
 pub(crate) struct HittableList(pub(crate) Vec<Rc<dyn Hittable>>);
@@ -44,23 +66,17 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, ray: Ray, ray_interval: Interval, hit_record: &mut HitRecord) -> bool {
-        let mut temp_record = HitRecord::default();
-        let mut hit_anything = false;
+    fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord> {
+        let mut potential_hit: Option<HitRecord> = None;
         let mut closest_so_far = ray_interval.max;
 
         for object in self.0.iter() {
-            if object.hit(
-                ray,
-                Interval::new(ray_interval.min, closest_so_far),
-                &mut temp_record,
-            ) {
-                hit_anything = true;
-                closest_so_far = temp_record.t;
-                *hit_record = temp_record;
+            if let Some(hit) = object.hit(ray, Interval::new(ray_interval.min, closest_so_far)) {
+                closest_so_far = hit.t;
+                potential_hit = Option::Some(hit);
             }
         }
 
-        hit_anything
+        potential_hit
     }
 }

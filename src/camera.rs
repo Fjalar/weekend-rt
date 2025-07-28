@@ -129,17 +129,10 @@ impl Camera {
             return Color::new(0.0, 0.0, 0.0);
         }
 
-        let mut hit_record = HitRecord::default();
-
-        if world.hit(ray, Interval::new(0.001, f32::INFINITY), &mut hit_record) {
-            let direction = hit_record.normal + Vec3::random_unit_vector(&mut self.rng);
+        if let Some(hit) = world.hit(ray, Interval::new(0.001, f32::INFINITY)) {
+            let direction = hit.normal + Vec3::random_unit_vector(&mut self.rng);
             return 0.5
-                * Self::ray_color(
-                    self,
-                    Ray::new(hit_record.position, direction),
-                    depth - 1,
-                    world,
-                );
+                * Self::ray_color(self, Ray::new(hit.position, direction), depth - 1, world);
 
             // // Normals shading
             // return 0.5 * (Color::from(hit_record.normal) + Color::new(1.0, 1.0, 1.0));
