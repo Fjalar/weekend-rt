@@ -1,4 +1,5 @@
 use crate::hittable::{HitRecord, Hittable, HittableList};
+use crate::interval::Interval;
 use crate::point::Point;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
@@ -9,6 +10,7 @@ use std::rc::Rc;
 
 mod color;
 mod hittable;
+mod interval;
 mod point;
 mod ray;
 mod sphere;
@@ -87,7 +89,7 @@ fn main() -> std::io::Result<()> {
 pub(crate) fn ray_color(ray: Ray, world: &mut HittableList) -> Color {
     let mut hit_record = HitRecord::default();
 
-    if world.hit(ray, 0.0, f32::INFINITY, &mut hit_record) {
+    if world.hit(ray, Interval::new(0.0, f32::INFINITY), &mut hit_record) {
         // let normal: Vec3 = Vec3::from(ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit();
         // return 0.5 * Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0);
         return 0.5 * (Color::from(hit_record.normal) + Color::new(1.0, 1.0, 1.0));

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{point::Point, ray::Ray, vec3::Vec3};
+use crate::{interval::Interval, point::Point, ray::Ray, vec3::Vec3};
 
 #[derive(Clone, Copy, Default)]
 pub(crate) struct HitRecord {
@@ -23,7 +23,7 @@ impl HitRecord {
 }
 
 pub(crate) trait Hittable {
-    fn hit(&self, ray: Ray, ray_tmin: f32, ray_tmax: f32, hit_record: &mut HitRecord) -> bool;
+    fn hit(&self, ray: Ray, ray_interval: Interval, hit_record: &mut HitRecord) -> bool;
 }
 
 pub(crate) struct HittableList(pub(crate) Vec<Rc<dyn Hittable>>);
@@ -44,13 +44,17 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, ray: Ray, ray_tmin: f32, ray_tmax: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: Ray, ray_interval: Interval, hit_record: &mut HitRecord) -> bool {
         let mut temp_record = HitRecord::default();
         let mut hit_anything = false;
-        let mut closest_so_far = ray_tmax;
+        let mut closest_so_far = ray_interval.max;
 
         for object in self.0.iter() {
-            if object.hit(ray, ray_tmin, closest_so_far, &mut temp_record) {
+            if object.hit(
+                ray,
+                Interval::new(ray_interval.min, closest_so_far),
+                &mut temp_record,
+            ) {
                 hit_anything = true;
                 closest_so_far = temp_record.t;
                 *hit_record = temp_record;
