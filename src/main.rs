@@ -1,11 +1,17 @@
+use crate::hittable::{HitRecord, Hittable, HittableList};
 use crate::point::Point;
+use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 use crate::{color::Color, ray::Ray};
+use std::f32;
 use std::io::{BufWriter, Write};
+use std::rc::Rc;
 
 mod color;
+mod hittable;
 mod point;
 mod ray;
+mod sphere;
 mod vec3;
 
 fn main() -> std::io::Result<()> {
@@ -42,6 +48,11 @@ fn main() -> std::io::Result<()> {
 
     let PIXEL00_LOC = VIEWPORT_UPPER_LEFT + (PIXEL_DELTA_U + PIXEL_DELTA_V) * 0.5;
 
+    // Scene
+    let mut world = HittableList::new();
+    world.add(Rc::new(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.25)));
+    world.add(Rc::new(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0)));
+
     // Render
 
     let mut out = BufWriter::new(std::fs::File::create("render.ppm")?);
@@ -60,7 +71,7 @@ fn main() -> std::io::Result<()> {
 
             let ray = Ray::new(CAMERA_CENTER, ray_direction);
 
-            let color = ray_color(ray);
+            let color = ray_color(ray, &mut world);
 
             writeln!(out, "{color}")?;
         }
@@ -73,29 +84,16 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-pub(crate) fn ray_color(ray: Ray) -> Color {
-    let t = hit_sphere(Point::new(0.0, 0.0, -1.0), 0.5, ray);
+pub(crate) fn ray_color(ray: Ray, world: &mut HittableList) -> Color {
+    let mut hit_record = HitRecord::default();
 
-    if t > 0.0 {
-        let normal: Vec3 = Vec3::from(ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit();
-        return 0.5 * Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0);
+    if world.hit(ray, 0.0, f32::INFINITY, &mut hit_record) {
+        // let normal: Vec3 = Vec3::from(ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit();
+        // return 0.5 * Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0);
+        return 0.5 * (Color::from(hit_record.normal) + Color::new(1.0, 1.0, 1.0));
     }
 
     let unit_direction = ray.direction.unit();
     let a = (unit_direction.y + 1.0) * 0.5;
     (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
-}
-
-pub(crate) fn hit_sphere(center: Point, radius: f32, ray: Ray) -> f32 {
-    let ray_to_sphere = center - ray.origin;
-    let a = ray.direction.length_squared();
-    let h = ray.direction.dot(ray_to_sphere);
-    let c = ray_to_sphere.length_squared() - radius * radius;
-    let discriminant = h * h - a * c;
-
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (h - discriminant.sqrt()) / a
-    }
 }

@@ -2,7 +2,7 @@ use std::ops;
 
 use crate::{color::Color, point::Point};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub(crate) struct Vec3 {
     pub(crate) x: f32,
     pub(crate) y: f32,

@@ -2,7 +2,7 @@ use std::ops;
 
 use crate::vec3::Vec3;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub(crate) struct Point {
     pub(crate) x: f32,
     pub(crate) y: f32,
