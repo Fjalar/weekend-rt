@@ -1,4 +1,6 @@
-use std::ops;
+use std::ops::{self};
+
+use rand::{Rng, rngs::ThreadRng};
 
 use crate::{color::Color, point::Point};
 
@@ -13,6 +15,42 @@ pub(crate) struct Vec3 {
 impl Vec3 {
     pub(crate) const fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3 { x, y, z }
+    }
+
+    pub(crate) fn random(rng: &mut ThreadRng) -> Self {
+        Vec3 {
+            x: rng.random(),
+            y: rng.random(),
+            z: rng.random(),
+        }
+    }
+
+    pub(crate) fn random_in_range(rng: &mut ThreadRng, min: f32, max: f32) -> Self {
+        Vec3 {
+            x: rng.random_range(min..max),
+            y: rng.random_range(min..max),
+            z: rng.random_range(min..max),
+        }
+    }
+
+    pub(crate) fn random_unit_vector(rng: &mut ThreadRng) -> Self {
+        loop {
+            let cube_vector = Vec3::random_in_range(rng, -1.0, 1.0);
+            let length_squared = cube_vector.length_squared();
+            // Floating point imprecission requires us to reject very small vectors inside unit sphere
+            if 1e-160 < length_squared && length_squared <= 1.0 {
+                return cube_vector / length_squared.sqrt();
+            }
+        }
+    }
+
+    pub(crate) fn random_on_hemisphere(rng: &mut ThreadRng, normal: Vec3) -> Self {
+        let on_unit_sphere = Self::random_unit_vector(rng);
+        if on_unit_sphere.dot(normal) > 0.0 {
+            on_unit_sphere
+        } else {
+            -1.0 * on_unit_sphere
+        }
     }
 
     pub(crate) const fn length_squared(&self) -> f32 {

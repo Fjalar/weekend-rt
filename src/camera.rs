@@ -40,7 +40,7 @@ impl Camera {
                 for _ in 0..self.samples_per_pixel {
                     let ray = Self::get_ray(self, j, i);
 
-                    pixel_color += Self::ray_color(ray, world);
+                    pixel_color += Self::ray_color(self, ray, world);
                 }
 
                 pixel_color /= self.samples_per_pixel as f32;
@@ -122,12 +122,15 @@ impl Camera {
         Vec3::new(i, j, 0.0)
     }
 
-    fn ray_color(ray: Ray, world: &mut HittableList) -> Color {
+    fn ray_color(&mut self, ray: Ray, world: &mut HittableList) -> Color {
         let mut hit_record = HitRecord::default();
 
         if world.hit(ray, Interval::new(0.0, f32::INFINITY), &mut hit_record) {
-            // Normals shading
-            return 0.5 * (Color::from(hit_record.normal) + Color::new(1.0, 1.0, 1.0));
+            let direction = Vec3::random_on_hemisphere(&mut self.rng, hit_record.normal);
+            return 0.5 * Self::ray_color(self, Ray::new(hit_record.position, direction), world);
+
+            // // Normals shading
+            // return 0.5 * (Color::from(hit_record.normal) + Color::new(1.0, 1.0, 1.0));
         }
 
         // Background gradient
