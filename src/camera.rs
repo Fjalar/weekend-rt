@@ -132,7 +132,7 @@ impl Camera {
         let mut hit_record = HitRecord::default();
 
         if world.hit(ray, Interval::new(0.001, f32::INFINITY), &mut hit_record) {
-            let direction = Vec3::random_on_hemisphere(&mut self.rng, hit_record.normal);
+            let direction = hit_record.normal + Vec3::random_unit_vector(&mut self.rng);
             return 0.5
                 * Self::ray_color(
                     self,
