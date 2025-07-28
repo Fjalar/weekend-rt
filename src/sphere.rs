@@ -36,7 +36,7 @@ impl Hittable for Sphere {
         let root = (h - sqrt_d) / a;
         if !ray_inteval.surrounds(root) {
             let root = (h + sqrt_d) / a;
-            if ray_inteval.surrounds(root) {
+            if !ray_inteval.surrounds(root) {
                 return false;
             }
         }
