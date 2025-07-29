@@ -26,6 +26,7 @@ fn main() -> std::io::Result<()> {
         0.5,
         Rc::new(Metal {
             albedo: Color::new(0.8, 0.8, 0.8),
+            fuzz: 0.3,
         }),
     )));
 
@@ -44,6 +45,7 @@ fn main() -> std::io::Result<()> {
         0.5,
         Rc::new(Metal {
             albedo: Color::new(0.8, 0.6, 0.2),
+            fuzz: 1.0,
         }),
     )));
 

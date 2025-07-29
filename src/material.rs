@@ -1,6 +1,6 @@
 use rand::rngs::ThreadRng;
 
-use crate::{color::Color, hittable::HitRecord, ray::Ray, vec3::Vec3};
+use crate::{color::Color, ray::Ray, vec3::Vec3};
 
 pub(crate) trait Material {
     fn scatter(&self, rng: &mut ThreadRng, ray: Ray, t: f32, normal: Vec3) -> (Ray, Color);
@@ -24,12 +24,14 @@ impl Material for Lambertian {
 
 pub(crate) struct Metal {
     pub(crate) albedo: Color,
+    pub(crate) fuzz: f32,
 }
 
 impl Material for Metal {
-    fn scatter(&self, _: &mut ThreadRng, ray: Ray, t: f32, normal: Vec3) -> (Ray, Color) {
+    fn scatter(&self, rng: &mut ThreadRng, ray: Ray, t: f32, normal: Vec3) -> (Ray, Color) {
         let reflected = ray.direction.reflect(normal);
+        let reflected_fuzzed = reflected.unit() + (self.fuzz * Vec3::random_unit_vector(rng));
 
-        (Ray::new(ray.at(t), reflected), self.albedo)
+        (Ray::new(ray.at(t), reflected_fuzzed), self.albedo)
     }
 }
