@@ -1,8 +1,6 @@
 use std::rc::Rc;
 
-use crate::{
-    color::Color, interval::Interval, material::Material, point::Point, ray::Ray, vec3::Vec3,
-};
+use crate::{interval::Interval, material::Material, point::Point, ray::Ray, vec3::Vec3};
 
 #[derive(Clone)]
 pub(crate) struct HitRecord {
@@ -14,16 +12,6 @@ pub(crate) struct HitRecord {
 }
 
 impl HitRecord {
-    // Parameter outward_normal is assumed to be unit length
-    pub(crate) fn set_face_normal(&mut self, ray: Ray, outward_normal: Vec3) {
-        self.front_face = ray.direction.dot(outward_normal) < 0.0;
-        self.normal = if self.front_face {
-            outward_normal
-        } else {
-            -outward_normal
-        }
-    }
-
     pub(crate) fn new(ray: Ray, t: f32, outward_normal: Vec3, material: Rc<dyn Material>) -> Self {
         let position = ray.at(t);
 

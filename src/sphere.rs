@@ -38,18 +38,16 @@ impl Hittable for Sphere {
         let sqrt_d = discriminant.sqrt();
 
         // Find nearest root that lies in the acceptable range of ray_tmin..ray_tmax
-        let root = (h - sqrt_d) / a;
+        let mut root = (h - sqrt_d) / a;
         if !ray_inteval.surrounds(root) {
-            let root = (h + sqrt_d) / a;
+            root = (h + sqrt_d) / a;
             if !ray_inteval.surrounds(root) {
                 return None;
             }
         }
 
-        //hit_record.t = root;
         let position = ray.at(root);
         let outward_normal = (position - self.center) / self.radius;
-        //hit_record.set_face_normal(ray, outward_normal);
 
         Some(HitRecord::new(
             ray,
