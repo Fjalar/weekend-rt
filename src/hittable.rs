@@ -20,7 +20,7 @@ impl HitRecord {
         self.normal = if self.front_face {
             outward_normal
         } else {
-            -1.0 * outward_normal
+            -outward_normal
         }
     }
 
@@ -31,7 +31,7 @@ impl HitRecord {
         let normal = if front_face {
             outward_normal
         } else {
-            -1.0 * outward_normal
+            -outward_normal
         };
 
         HitRecord {
@@ -73,7 +73,7 @@ impl Hittable for HittableList {
         for object in self.0.iter() {
             if let Some(hit) = object.hit(ray, Interval::new(ray_interval.min, closest_so_far)) {
                 closest_so_far = hit.t;
-                potential_hit = Option::Some(hit);
+                potential_hit = Some(hit);
             }
         }
 

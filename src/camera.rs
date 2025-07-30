@@ -3,7 +3,7 @@ use std::io::{BufWriter, Write};
 
 use crate::{
     color::Color,
-    hittable::{HitRecord, Hittable, HittableList},
+    hittable::{Hittable, HittableList},
     interval::Interval,
     point::Point,
     ray::Ray,
@@ -99,7 +99,7 @@ impl Camera {
             pixel_delta_u: PIXEL_DELTA_U,
             pixel_delta_v: PIXEL_DELTA_V,
             samples_per_pixel: 100,
-            max_depth: 10,
+            max_depth: 50,
             rng: rand::rng(),
         }
     }
@@ -130,18 +130,10 @@ impl Camera {
         }
 
         if let Some(hit) = world.hit(ray, Interval::new(0.001, f32::INFINITY)) {
-            if let (scattered_ray, attenuation) =
-                hit.material.scatter(&mut self.rng, ray, hit.t, hit.normal)
-            {
-                // Guide shows attenuation * ray_color(...) here, what? multiplying colors together?
-                return attenuation * self.ray_color(scattered_ray, depth - 1, world);
-            }
-            let direction = hit.normal + Vec3::random_unit_vector(&mut self.rng);
-            return 0.5
-                * Self::ray_color(self, Ray::new(hit.position, direction), depth - 1, world);
-
-            // // Normals shading
-            // return 0.5 * (Color::from(hit_record.normal) + Color::new(1.0, 1.0, 1.0));
+            let (scattered_ray, attenuation) =
+                hit.material
+                    .scatter(&mut self.rng, ray, hit.t, hit.normal, hit.front_face);
+            return attenuation * self.ray_color(scattered_ray, depth - 1, world);
         }
 
         // Background gradient

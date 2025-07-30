@@ -1,4 +1,4 @@
-use std::ops::{self};
+use std::ops::{self, Neg};
 
 use rand::{Rng, rngs::ThreadRng};
 
@@ -49,7 +49,7 @@ impl Vec3 {
         if on_unit_sphere.dot(normal) > 0.0 {
             on_unit_sphere
         } else {
-            -1.0 * on_unit_sphere
+            -on_unit_sphere
         }
     }
 
@@ -75,6 +75,14 @@ impl Vec3 {
 
     pub(crate) fn reflect(&self, normal: Vec3) -> Vec3 {
         *self - normal * (2.0 * self.dot(normal))
+    }
+
+    // assumes self is unit vector
+    pub(crate) fn refract(self, normal: Vec3, eta_quotient: f32) -> Vec3 {
+        let cos_theta = f32::min((-self).dot(normal), 1.0);
+        let perpendicular = eta_quotient * (self + cos_theta * normal);
+        let parallell = -f32::abs(1.0 - perpendicular.length_squared()).sqrt() * normal;
+        perpendicular + parallell
     }
 
     pub(crate) fn unit(&self) -> Vec3 {
@@ -184,6 +192,18 @@ where
         self.x /= rhs.into();
         self.y /= rhs.into();
         self.z /= rhs.into();
+    }
+}
+
+impl Neg for Vec3 {
+    type Output = Vec3;
+
+    fn neg(self) -> Self::Output {
+        Vec3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
     }
 }
 

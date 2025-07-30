@@ -1,7 +1,7 @@
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::hittable::HittableList;
-use crate::material::{Lambertian, Metal};
+use crate::material::{Dielectric, Lambertian, Metal};
 use crate::point::Point;
 use crate::sphere::Sphere;
 use std::rc::Rc;
@@ -24,9 +24,8 @@ fn main() -> std::io::Result<()> {
     world.add(Rc::new(Sphere::new(
         Point::new(-1.0, 0.0, -1.0),
         0.5,
-        Rc::new(Metal {
-            albedo: Color::new(0.8, 0.8, 0.8),
-            fuzz: 0.3,
+        Rc::new(Dielectric {
+            refraction_index: 1.5,
         }),
     )));
 
