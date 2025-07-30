@@ -25,7 +25,16 @@ fn main() -> std::io::Result<()> {
         Point::new(-1.0, 0.0, -1.0),
         0.5,
         Rc::new(Dielectric {
-            refraction_index: 1.0 / 1.33,
+            refraction_index: 1.5,
+        }),
+    )));
+
+    // Air bubble inside left
+    world.add(Rc::new(Sphere::new(
+        Point::new(-1.0, 0.0, -1.0),
+        0.4,
+        Rc::new(Dielectric {
+            refraction_index: 1.0 / 1.5,
         }),
     )));
 
