@@ -1,4 +1,4 @@
-use rand::rngs::ThreadRng;
+use rand::{Rng, rngs::ThreadRng};
 
 use crate::{color::Color, ray::Ray, vec3::Vec3};
 
@@ -64,7 +64,7 @@ pub(crate) struct Dielectric {
 impl Material for Dielectric {
     fn scatter(
         &self,
-        _: &mut ThreadRng,
+        rng: &mut ThreadRng,
         ray: Ray,
         t: f32,
         normal: Vec3,
@@ -85,7 +85,14 @@ impl Material for Dielectric {
 
         let cannot_refract = refraction_index * sin_theta > 1.0;
 
-        let direction = if cannot_refract {
+        // Schlick approximation
+        let reflectance = {
+            let r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+            let r0 = r0 * r0;
+            r0 + (1.0 - r0) * (1.0 - cos_theta).powi(10)
+        };
+
+        let direction = if cannot_refract || reflectance > rng.random_range(0.0..1.0) {
             unit_direction.reflect(normal)
         } else {
             unit_direction.refract(normal, refraction_index)
