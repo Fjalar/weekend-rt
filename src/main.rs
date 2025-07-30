@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
         Point::new(-1.0, 0.0, -1.0),
         0.5,
         Rc::new(Dielectric {
-            refraction_index: 1.5,
+            refraction_index: 1.0 / 1.33,
         }),
     )));
 

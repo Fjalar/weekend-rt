@@ -72,16 +72,26 @@ impl Material for Dielectric {
     ) -> (Ray, Color) {
         let color = Color::new(1.0, 1.0, 1.0);
 
-        // Inversion here is different from tutorial, why??
         let refraction_index = if front_face {
             1.0 / self.refraction_index
         } else {
             self.refraction_index
         };
 
-        let refracted = (ray.direction.unit()).refract(normal, refraction_index);
+        let unit_direction = ray.direction.unit();
 
-        let scattered = Ray::new(ray.at(t), refracted);
+        let cos_theta = f32::min((-unit_direction).dot(normal), 1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+        let cannot_refract = refraction_index * sin_theta > 1.0;
+
+        let direction = if cannot_refract {
+            unit_direction.reflect(normal)
+        } else {
+            unit_direction.refract(normal, refraction_index)
+        };
+
+        let scattered = Ray::new(ray.at(t), direction);
 
         (scattered, color)
     }
