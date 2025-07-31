@@ -15,6 +15,7 @@ pub(crate) struct Camera {
     pub(crate) aspect_ratio: f32,
     pub(crate) image_width: u32,
     pub(crate) image_height: u32,
+    pub(crate) vertical_fov: f32,
     pub(crate) center: Point,
     pub(crate) pixel00_loc: Point,
     pub(crate) pixel_delta_u: Vec3,
@@ -60,6 +61,7 @@ impl Camera {
         aspect_ratio: f32,
         image_width: u32,
         focal_length: f32,
+        vertical_fov: f32,
         center: Point,
         samples_per_pixel: u32,
         max_depth: u32,
@@ -74,7 +76,11 @@ impl Camera {
         };
 
         // Camera
-        let viewport_height = 2.0;
+
+        let camera_angle = vertical_fov.to_radians();
+        let h = (camera_angle / 2.0).tan();
+
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * ((image_width as f32) / (image_height as f32));
 
         // Viewport vectors, u horizontal, v vertical (down)
@@ -96,6 +102,7 @@ impl Camera {
             aspect_ratio,
             image_width,
             image_height,
+            vertical_fov,
             center,
             pixel00_loc,
             pixel_delta_u,

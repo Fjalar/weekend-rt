@@ -69,6 +69,7 @@ fn main() -> std::io::Result<()> {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400u32;
     let focal_length = 1.0;
+    let vertical_fov = 90.0;
     let camera_center = Point::new(0.0, 0.0, 0.0);
     let samples_per_pixel = 100u32;
     let max_depth = 50u32;
@@ -78,6 +79,7 @@ fn main() -> std::io::Result<()> {
         aspect_ratio,
         image_width,
         focal_length,
+        vertical_fov,
         camera_center,
         samples_per_pixel,
         max_depth,
