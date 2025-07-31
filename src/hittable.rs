@@ -4,6 +4,7 @@ use crate::{interval::Interval, material::Material, point::Point, ray::Ray, vec3
 
 #[derive(Clone)]
 pub(crate) struct HitRecord {
+    #[allow(dead_code)]
     pub(crate) position: Point,
     pub(crate) normal: Vec3,
     pub(crate) material: Rc<dyn Material>,

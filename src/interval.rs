@@ -13,6 +13,8 @@ impl Default for Interval {
         }
     }
 }
+
+#[allow(dead_code)]
 impl Interval {
     pub(crate) const fn new(min: f32, max: f32) -> Interval {
         Interval { min, max }

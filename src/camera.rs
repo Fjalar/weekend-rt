@@ -1,4 +1,4 @@
-use rand::{prelude::*, rng};
+use rand::prelude::*;
 use std::io::{BufWriter, Write};
 
 use crate::{
@@ -11,6 +11,7 @@ use crate::{
 };
 
 pub(crate) struct Camera {
+    #[allow(dead_code)]
     pub(crate) aspect_ratio: f32,
     pub(crate) image_width: u32,
     pub(crate) image_height: u32,
@@ -55,51 +56,52 @@ impl Camera {
         out.flush()
     }
 
-    pub(crate) fn initialize() -> Self {
+    pub(crate) fn new(
+        aspect_ratio: f32,
+        image_width: u32,
+        focal_length: f32,
+        center: Point,
+        samples_per_pixel: u32,
+        max_depth: u32,
+    ) -> Self {
         // Image
-        const ASPECT_RATIO: f32 = 16.0 / 9.0;
-        const IMAGE_WIDTH: u32 = 400;
+        let desired_height = image_width as f32 / aspect_ratio;
 
-        const fn calc_height() -> u32 {
-            let height = IMAGE_WIDTH as f32 / ASPECT_RATIO;
-
-            if height >= 1.0 { height as u32 } else { 1u32 }
-        }
-
-        const IMAGE_HEIGHT: u32 = calc_height();
+        let image_height = if desired_height >= 1.0 {
+            desired_height as u32
+        } else {
+            1u32
+        };
 
         // Camera
-        const FOCAL_LENGTH: f32 = 1.0;
-        const VIEWPORT_HEIGHT: f32 = 2.0;
-        const VIEWPORT_WIDTH: f32 =
-            VIEWPORT_HEIGHT * ((IMAGE_WIDTH as f32) / (IMAGE_HEIGHT as f32));
-        const CAMERA_CENTER: Point = Point::new(0.0, 0.0, 0.0);
+        let viewport_height = 2.0;
+        let viewport_width = viewport_height * ((image_width as f32) / (image_height as f32));
 
         // Viewport vectors, u horizontal, v vertical (down)
-        const VIEWPORT_U: Vec3 = Vec3::new(VIEWPORT_WIDTH, 0.0, 0.0);
-        const VIEWPORT_V: Vec3 = Vec3::new(0.0, -VIEWPORT_HEIGHT, 0.0);
+        let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
+        let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
 
         // Horizontal and vertical distance vectors between pixels
         // Not const because of impl div
-        let PIXEL_DELTA_U: Vec3 = VIEWPORT_U / (IMAGE_WIDTH as f32);
-        let PIXEL_DELTA_V: Vec3 = VIEWPORT_V / (IMAGE_HEIGHT as f32);
+        let pixel_delta_u = viewport_u / (image_width as f32);
+        let pixel_delta_v: Vec3 = viewport_v / (image_height as f32);
 
         // Location of upper left pixel
-        let VIEWPORT_UPPER_LEFT: Point =
-            CAMERA_CENTER - Vec3::new(0.0, 0.0, FOCAL_LENGTH) - VIEWPORT_U / 2.0 - VIEWPORT_V / 2.0;
+        let viewport_upper_left =
+            center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
 
-        let PIXEL00_LOC = VIEWPORT_UPPER_LEFT + (PIXEL_DELTA_U + PIXEL_DELTA_V) * 0.5;
+        let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
 
         Camera {
-            aspect_ratio: ASPECT_RATIO,
-            image_width: IMAGE_WIDTH,
-            image_height: IMAGE_HEIGHT,
-            center: CAMERA_CENTER,
-            pixel00_loc: PIXEL00_LOC,
-            pixel_delta_u: PIXEL_DELTA_U,
-            pixel_delta_v: PIXEL_DELTA_V,
-            samples_per_pixel: 100,
-            max_depth: 50,
+            aspect_ratio,
+            image_width,
+            image_height,
+            center,
+            pixel00_loc,
+            pixel_delta_u,
+            pixel_delta_v,
+            samples_per_pixel,
+            max_depth,
             rng: rand::rng(),
         }
     }

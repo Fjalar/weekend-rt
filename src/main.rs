@@ -66,6 +66,22 @@ fn main() -> std::io::Result<()> {
         }),
     )));
 
-    let mut camera = Camera::initialize();
+    let aspect_ratio = 16.0 / 9.0;
+    let image_width = 400u32;
+    let focal_length = 1.0;
+    let camera_center = Point::new(0.0, 0.0, 0.0);
+    let samples_per_pixel = 100u32;
+    let max_depth = 50u32;
+
+    // Mutable due to containing ThreadRng that needs mutability to work
+    let mut camera = Camera::new(
+        aspect_ratio,
+        image_width,
+        focal_length,
+        camera_center,
+        samples_per_pixel,
+        max_depth,
+    );
+
     camera.render(&mut world)
 }
