@@ -10,6 +10,7 @@ use crate::{
     vec3::Vec3,
 };
 
+#[allow(dead_code)]
 pub(crate) struct Camera {
     pub(crate) position: Point,
 
@@ -21,7 +22,12 @@ pub(crate) struct Camera {
     // Camera back
     pub(crate) w: Vec3,
 
-    #[allow(dead_code)]
+    // == Focus ==
+    pub(crate) defocus_angle: f32,
+    pub(crate) focal_length: f32,
+    pub(crate) defocus_disk_u: Vec3,
+    pub(crate) defocus_disk_v: Vec3,
+
     pub(crate) aspect_ratio: f32,
     pub(crate) image_width: u32,
     pub(crate) image_height: u32,
@@ -71,6 +77,8 @@ impl Camera {
         position: Point,
         look_at: Point,
         view_up: Vec3,
+        focal_length: f32,
+        defocus_angle: f32,
         aspect_ratio: f32,
         image_width: u32,
         vertical_fov: f32,
@@ -90,8 +98,6 @@ impl Camera {
 
         let camera_angle = vertical_fov.to_radians();
         let h = (camera_angle / 2.0).tan();
-
-        let focal_length = (position - look_at).length();
 
         let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * ((image_width as f32) / (image_height as f32));
@@ -116,11 +122,20 @@ impl Camera {
 
         let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
 
+        // Camera defocus disk basis vectors
+        let defocus_radius = focal_length * (defocus_angle / 2.0).to_radians().tan();
+        let defocus_disk_u = u * defocus_radius;
+        let defocus_disk_v = v * defocus_radius;
+
         Camera {
             position,
             u,
             v,
             w,
+            defocus_angle,
+            focal_length,
+            defocus_disk_u,
+            defocus_disk_v,
             aspect_ratio,
             image_width,
             image_height,
@@ -142,7 +157,11 @@ impl Camera {
             + ((i as f32 + offset.x) * self.pixel_delta_u)
             + ((j as f32 + offset.y) * self.pixel_delta_v);
 
-        let ray_origin = self.position;
+        let ray_origin = if self.defocus_angle <= 0.0 {
+            self.position
+        } else {
+            self.sample_defocus_disk()
+        };
         let ray_direction = pixel_sample - ray_origin;
 
         Ray::new(ray_origin, ray_direction)
@@ -152,6 +171,11 @@ impl Camera {
         let i = self.rng.random_range(-0.5..0.5);
         let j = self.rng.random_range(-0.5..0.5);
         Vec3::new(i, j, 0.0)
+    }
+
+    fn sample_defocus_disk(&mut self) -> Point {
+        let p = Vec3::random_in_unit_disk(&mut self.rng);
+        self.position + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
     fn ray_color(&mut self, ray: Ray, depth: u32, world: &HittableList) -> Color {

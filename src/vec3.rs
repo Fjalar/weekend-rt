@@ -53,6 +53,19 @@ impl Vec3 {
         }
     }
 
+    pub(crate) fn random_in_unit_disk(rng: &mut ThreadRng) -> Vec3 {
+        loop {
+            let p = Vec3::new(
+                rng.random_range(-1.0..1.0),
+                rng.random_range(-1.0..1.0),
+                0.0,
+            );
+            if p.length_squared() < 1.0 {
+                return p;
+            }
+        }
+    }
+
     pub(crate) const fn length_squared(&self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }

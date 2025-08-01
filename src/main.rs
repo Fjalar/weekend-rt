@@ -70,6 +70,8 @@ fn main() -> std::io::Result<()> {
     let position = Point::new(-2.0, 2.0, 1.0);
     let look_at = Point::new(0.0, 0.0, -1.0);
     let view_up = Vec3::new(0.0, 1.0, 0.0);
+    let focal_length = 3.4;
+    let defocus_angle = 10.0;
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400u32;
     let vertical_fov = 25.0;
@@ -81,6 +83,8 @@ fn main() -> std::io::Result<()> {
         position,
         look_at,
         view_up,
+        focal_length,
+        defocus_angle,
         aspect_ratio,
         image_width,
         vertical_fov,
