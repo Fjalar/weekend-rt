@@ -1,14 +1,6 @@
-use crate::camera::Camera;
-use crate::color::Color;
-use crate::hittable::HittableList;
-use crate::material::{Dielectric, Lambertian, Metal};
-use crate::point::Point;
-use crate::sphere::Sphere;
-use crate::vec3::Vec3;
-use std::rc::Rc;
-
 mod camera;
 mod color;
+mod examples;
 mod hittable;
 mod interval;
 mod material;
@@ -19,78 +11,10 @@ mod vec3;
 
 fn main() -> std::io::Result<()> {
     // Scene
-    let mut world = HittableList::new();
-
-    // Left
-    world.add(Rc::new(Sphere::new(
-        Point::new(-1.0, 0.0, -1.0),
-        0.5,
-        Rc::new(Dielectric {
-            refraction_index: 1.5,
-        }),
-    )));
-
-    // Air bubble inside left
-    world.add(Rc::new(Sphere::new(
-        Point::new(-1.0, 0.0, -1.0),
-        0.4,
-        Rc::new(Dielectric {
-            refraction_index: 1.0 / 1.5,
-        }),
-    )));
-
-    // Center
-    world.add(Rc::new(Sphere::new(
-        Point::new(0.0, 0.0, -1.2),
-        0.5,
-        Rc::new(Lambertian {
-            albedo: Color::new(0.1, 0.2, 0.5),
-        }),
-    )));
-
-    // Right
-    world.add(Rc::new(Sphere::new(
-        Point::new(1.0, 0.0, -1.0),
-        0.5,
-        Rc::new(Metal {
-            albedo: Color::new(0.8, 0.6, 0.2),
-            fuzz: 1.0,
-        }),
-    )));
-
-    // Ground
-    world.add(Rc::new(Sphere::new(
-        Point::new(0.0, -100.5, -1.0),
-        100.0,
-        Rc::new(Lambertian {
-            albedo: Color::new(0.8, 0.8, 0.0),
-        }),
-    )));
-
-    let position = Point::new(-2.0, 2.0, 1.0);
-    let look_at = Point::new(0.0, 0.0, -1.0);
-    let view_up = Vec3::new(0.0, 1.0, 0.0);
-    let focal_length = 3.4;
-    let defocus_angle = 10.0;
-    let aspect_ratio = 16.0 / 9.0;
-    let image_width = 400u32;
-    let vertical_fov = 25.0;
-    let samples_per_pixel = 100u32;
-    let max_depth = 50u32;
+    let mut world = examples::large_example_world();
 
     // Mutable due to containing ThreadRng that needs mutability to work
-    let mut camera = Camera::new(
-        position,
-        look_at,
-        view_up,
-        focal_length,
-        defocus_angle,
-        aspect_ratio,
-        image_width,
-        vertical_fov,
-        samples_per_pixel,
-        max_depth,
-    );
+    let mut camera = examples::large_example_camera();
 
     camera.render(&mut world)
 }
