@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, sync::Arc};
 
 use crate::{
     axis::Axis,
@@ -133,7 +133,7 @@ impl Hittable for AABB {
         Some(HitRecord {
             position: Point::new(0.0, 0.0, 0.0),
             normal: Vec3::new(0.0, 0.0, 0.0),
-            material: Rc::new(Lambertian {
+            material: Arc::new(Lambertian {
                 albedo: Color::new(0.0, 0.0, 0.0),
             }),
             t: ray_interval_max,

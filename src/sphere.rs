@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     aabb::AABB,
@@ -14,12 +14,12 @@ use crate::{
 pub(crate) struct Sphere {
     pub(crate) center: Point,
     pub(crate) radius: f32,
-    pub(crate) material: Rc<dyn Material>,
+    pub(crate) material: Arc<dyn Material>,
     pub(crate) aabb: AABB,
 }
 
 impl Sphere {
-    pub(crate) fn new(center: Point, radius: f32, material: Rc<dyn Material>) -> Sphere {
+    pub(crate) fn new(center: Point, radius: f32, material: Arc<dyn Material>) -> Sphere {
         let radius = radius.max(0.0);
         let radius_vector = Vec3::new(radius, radius, radius);
         Sphere {

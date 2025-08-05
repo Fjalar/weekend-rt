@@ -1,16 +1,16 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{aabb::AABB, hittable::Hittable};
 
 #[derive(Debug)]
 pub(crate) struct BVHNode {
-    left: Rc<dyn Hittable>,
-    right: Rc<dyn Hittable>,
+    left: Arc<dyn Hittable>,
+    right: Arc<dyn Hittable>,
     aabb: AABB,
 }
 
 impl BVHNode {
-    pub(crate) fn new(objects: &mut Vec<Rc<dyn Hittable>>, start: usize, end: usize) -> Self {
+    pub(crate) fn new(objects: &mut Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> Self {
         let mut bounding_box = AABB::empty();
 
         for idx in start..end {
@@ -21,7 +21,7 @@ impl BVHNode {
 
         let longest_axis = bounding_box.longest_axis();
 
-        let key_lambda = |a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>| {
+        let key_lambda = |a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
             a.bounding_box()
                 .axis_interval(longest_axis)
                 .min
@@ -39,8 +39,8 @@ impl BVHNode {
 
             let mid = start + object_span / 2;
 
-            let local_left: Rc<dyn Hittable> = Rc::new(BVHNode::new(objects, start, mid));
-            let local_right: Rc<dyn Hittable> = Rc::new(BVHNode::new(objects, mid, end));
+            let local_left: Arc<dyn Hittable> = Arc::new(BVHNode::new(objects, start, mid));
+            let local_right: Arc<dyn Hittable> = Arc::new(BVHNode::new(objects, mid, end));
 
             (local_left, local_right)
         };

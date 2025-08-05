@@ -17,7 +17,9 @@ fn main() -> std::io::Result<()> {
     let world = examples::large_example_world();
 
     // Mutable due to containing ThreadRng that needs mutability to work
-    let mut camera = examples::large_example_camera();
+    let camera = examples::large_example_camera();
 
-    camera.render(world)
+    let pixels = camera.render(world)?;
+
+    camera.write_img(&pixels)
 }

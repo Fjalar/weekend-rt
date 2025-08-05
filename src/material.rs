@@ -1,11 +1,12 @@
-use rand::{Rng, rngs::ThreadRng};
+use rand::Rng;
+use rand_chacha::ChaCha8Rng;
 
 use crate::{color::Color, ray::Ray, vec3::Vec3};
 
-pub(crate) trait Material: std::fmt::Debug {
+pub(crate) trait Material: std::fmt::Debug + Send + Sync {
     fn scatter(
         &self,
-        rng: &mut ThreadRng,
+        rng: &mut ChaCha8Rng,
         ray: Ray,
         t: f32,
         normal: Vec3,
@@ -21,7 +22,7 @@ pub(crate) struct Lambertian {
 impl Material for Lambertian {
     fn scatter(
         &self,
-        rng: &mut ThreadRng,
+        rng: &mut ChaCha8Rng,
         ray: Ray,
         t: f32,
         normal: Vec3,
@@ -46,7 +47,7 @@ pub(crate) struct Metal {
 impl Material for Metal {
     fn scatter(
         &self,
-        rng: &mut ThreadRng,
+        rng: &mut ChaCha8Rng,
         ray: Ray,
         t: f32,
         normal: Vec3,
@@ -67,7 +68,7 @@ pub(crate) struct Dielectric {
 impl Material for Dielectric {
     fn scatter(
         &self,
-        rng: &mut ThreadRng,
+        rng: &mut ChaCha8Rng,
         ray: Ray,
         t: f32,
         normal: Vec3,

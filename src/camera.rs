@@ -1,7 +1,13 @@
 use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
+use rayon::prelude::*;
 use std::{
+    collections::LinkedList,
     io::{BufWriter, Write},
+    num,
     rc::Rc,
+    sync::{Arc, Mutex},
+    thread::{self, JoinHandle, ScopedJoinHandle},
 };
 
 use crate::{
@@ -40,11 +46,61 @@ pub(crate) struct Camera {
     pub(crate) pixel_delta_v: Vec3,
     pub(crate) samples_per_pixel: u32,
     pub(crate) max_depth: u32,
-    pub(crate) rng: ThreadRng,
 }
 
 impl Camera {
-    pub(crate) fn render(&mut self, world: Rc<dyn Hittable>) -> std::io::Result<()> {
+    pub(crate) fn render(&self, world: Arc<dyn Hittable>) -> std::io::Result<Vec<Color>> {
+        // Render
+
+        let num_threads = usize::from(thread::available_parallelism()?);
+
+        let samples_per_pixel_per_thread = self.samples_per_pixel / num_threads as u32;
+
+        println!("Rendering on {num_threads}");
+
+        let images = (0..num_threads)
+            .into_par_iter()
+            .map(|idx| {
+                let mut rng = ChaCha8Rng::seed_from_u64(idx as u64);
+                let world_pointer = world.clone();
+
+                let mut output = Vec::<Color>::new();
+                for i in 0..self.image_height {
+                    for j in 0..self.image_width {
+                        let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+
+                        (0..samples_per_pixel_per_thread).for_each(|_| {
+                            let ray = Self::get_ray(self, &mut rng, j, i);
+
+                            pixel_color += Self::ray_color(
+                                self,
+                                &mut rng,
+                                ray,
+                                self.max_depth,
+                                &world_pointer,
+                            );
+                        });
+
+                        output.push(pixel_color / samples_per_pixel_per_thread as f32);
+                    }
+                }
+                output
+            })
+            .collect::<Vec<Vec<Color>>>();
+
+        let mut avg: Vec<Color> = Vec::new();
+        for idx in 0..(self.image_height * self.image_width) as usize {
+            let mut running_total = Color::new(0.0, 0.0, 0.0);
+            (0..images.len()).for_each(|img| {
+                running_total += images[img][idx];
+            });
+            avg.push(running_total / images.len() as f32)
+        }
+
+        Ok(avg)
+    }
+
+    pub(crate) fn write_img(&self, pixels: &[Color]) -> std::io::Result<()> {
         // Render
 
         let mut out = BufWriter::new(std::fs::File::create("render.ppm")?);
@@ -53,26 +109,13 @@ impl Camera {
         writeln!(out, "255")?;
 
         for i in 0..self.image_height {
-            print!("Rendering line: {}/{}\r", i + 1, self.image_height);
-            std::io::stdout().flush()?;
             for j in 0..self.image_width {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-
-                for _ in 0..self.samples_per_pixel {
-                    let ray = Self::get_ray(self, j, i);
-
-                    pixel_color += Self::ray_color(self, ray, self.max_depth, &world);
-                }
-
-                pixel_color /= self.samples_per_pixel as f32;
-
-                writeln!(out, "{pixel_color}")?;
+                writeln!(out, "{}", pixels[(j + i * self.image_width) as usize])?;
             }
         }
 
-        println!();
-
-        out.flush()
+        out.flush()?;
+        Ok(())
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -148,13 +191,15 @@ impl Camera {
             pixel_delta_v,
             samples_per_pixel,
             max_depth,
-            rng: rand::rng(),
         }
     }
 
-    fn get_ray(&mut self, i: u32, j: u32) -> Ray {
+    fn get_ray<T>(&self, rng: &mut T, i: u32, j: u32) -> Ray
+    where
+        T: Rng,
+    {
         // Construct ray for pixel (i, j), where (0,0) is top left of screen and (IMAGE_WIDTH, IMAGE_HEIGHT) is bottom right
-        let offset = Self::sample_square(self);
+        let offset = Self::sample_square(self, rng);
 
         let pixel_sample = self.pixel00_loc
             + ((i as f32 + offset.x) * self.pixel_delta_u)
@@ -163,25 +208,37 @@ impl Camera {
         let ray_origin = if self.defocus_angle <= 0.0 {
             self.position
         } else {
-            self.sample_defocus_disk()
+            self.sample_defocus_disk(rng)
         };
         let ray_direction = pixel_sample - ray_origin;
 
         Ray::new(ray_origin, ray_direction)
     }
 
-    fn sample_square(&mut self) -> Vec3 {
-        let i = self.rng.random_range(-0.5..0.5);
-        let j = self.rng.random_range(-0.5..0.5);
+    fn sample_square<T>(&self, rng: &mut T) -> Vec3
+    where
+        T: Rng,
+    {
+        let i = rng.random_range(-0.5..0.5);
+        let j = rng.random_range(-0.5..0.5);
         Vec3::new(i, j, 0.0)
     }
 
-    fn sample_defocus_disk(&mut self) -> Point {
-        let p = Vec3::random_in_unit_disk(&mut self.rng);
+    fn sample_defocus_disk<T>(&self, rng: &mut T) -> Point
+    where
+        T: Rng,
+    {
+        let p = Vec3::random_in_unit_disk(rng);
         self.position + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
-    fn ray_color(&mut self, ray: Ray, depth: u32, world: &Rc<dyn Hittable>) -> Color {
+    fn ray_color(
+        &self,
+        rng: &mut ChaCha8Rng,
+        ray: Ray,
+        depth: u32,
+        world: &Arc<dyn Hittable>,
+    ) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -189,8 +246,8 @@ impl Camera {
         if let Some(hit) = world.hit(ray, Interval::new(0.001, f32::INFINITY)) {
             let (scattered_ray, attenuation) =
                 hit.material
-                    .scatter(&mut self.rng, ray, hit.t, hit.normal, hit.front_face);
-            return attenuation * self.ray_color(scattered_ray, depth - 1, world);
+                    .scatter(rng, ray, hit.t, hit.normal, hit.front_face);
+            return attenuation * self.ray_color(rng, scattered_ray, depth - 1, world);
         }
 
         // Background gradient

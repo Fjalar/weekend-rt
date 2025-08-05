@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -46,47 +46,47 @@ pub(crate) fn small_example_world() -> HittableList {
     let mut world = HittableList::new();
 
     // Left
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(-1.0, 0.0, -1.0),
         0.5,
-        Rc::new(Dielectric {
+        Arc::new(Dielectric {
             refraction_index: 1.5,
         }),
     )));
 
     // Air bubble inside left
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(-1.0, 0.0, -1.0),
         0.4,
-        Rc::new(Dielectric {
+        Arc::new(Dielectric {
             refraction_index: 1.0 / 1.5,
         }),
     )));
 
     // Center
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(0.0, 0.0, -1.2),
         0.5,
-        Rc::new(Lambertian {
+        Arc::new(Lambertian {
             albedo: Color::new(0.1, 0.2, 0.5),
         }),
     )));
 
     // Right
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(1.0, 0.0, -1.0),
         0.5,
-        Rc::new(Metal {
+        Arc::new(Metal {
             albedo: Color::new(0.8, 0.6, 0.2),
             fuzz: 1.0,
         }),
     )));
 
     // Ground
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(0.0, -100.5, -1.0),
         100.0,
-        Rc::new(Lambertian {
+        Arc::new(Lambertian {
             albedo: Color::new(0.8, 0.8, 0.0),
         }),
     )));
@@ -120,16 +120,16 @@ pub(crate) fn large_example_camera() -> Camera {
     )
 }
 
-pub(crate) fn large_example_world() -> Rc<dyn Hittable> {
+pub(crate) fn large_example_world() -> Arc<dyn Hittable> {
     let mut rng = ChaCha8Rng::seed_from_u64(1);
 
     let mut world = HittableList::new();
 
-    let ground_material = Rc::new(Lambertian {
+    let ground_material = Arc::new(Lambertian {
         albedo: Color::new(0.5, 0.5, 0.5),
     });
 
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material,
@@ -149,58 +149,58 @@ pub(crate) fn large_example_world() -> Rc<dyn Hittable> {
             if (Vec3::from(center) - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let albedo = Color::from(Vec3::random_in_range(&mut rng, 0.0, 1.0))
                     * Color::from(Vec3::random_in_range(&mut rng, 0.0, 1.0));
-                let sphere_material: Rc<dyn Material> = if choose_material < 0.8 {
+                let sphere_material: Arc<dyn Material> = if choose_material < 0.8 {
                     // diffuse
-                    Rc::new(Lambertian { albedo })
+                    Arc::new(Lambertian { albedo })
                 } else if choose_material < 0.95 {
                     // metal
                     let fuzz = rng.random_range(0.0..0.5);
-                    Rc::new(Metal { albedo, fuzz })
+                    Arc::new(Metal { albedo, fuzz })
                 } else {
-                    Rc::new(Dielectric {
+                    Arc::new(Dielectric {
                         refraction_index: 1.5,
                     })
                 };
 
-                world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)));
+                world.add(Arc::new(Sphere::new(center, 0.2, sphere_material)));
             }
         }
     }
 
-    let material1 = Rc::new(Dielectric {
+    let material1 = Arc::new(Dielectric {
         refraction_index: 1.5,
     });
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(0.0, 1.0, 0.0),
         1.0,
         material1,
     )));
 
-    let material2 = Rc::new(Lambertian {
+    let material2 = Arc::new(Lambertian {
         albedo: Color::new(0.4, 0.2, 0.1),
     });
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(-4.0, 1.0, 0.0),
         1.0,
         material2,
     )));
 
-    let material3 = Rc::new(Metal {
+    let material3 = Arc::new(Metal {
         albedo: Color::new(0.7, 0.6, 0.5),
         fuzz: 0.0,
     });
-    world.add(Rc::new(Sphere::new(
+    world.add(Arc::new(Sphere::new(
         Point::new(4.0, 1.0, 0.0),
         1.0,
         material3,
     )));
 
-    // Rc::new(world)
+    // Arc::new(world)
     let world_count = world.objects.len();
 
     let mut new_list = HittableList::new();
 
-    new_list.add(Rc::new(BVHNode::new(&mut world.objects, 0, world_count)));
+    new_list.add(Arc::new(BVHNode::new(&mut world.objects, 0, world_count)));
 
-    Rc::new(new_list)
+    Arc::new(new_list)
 }

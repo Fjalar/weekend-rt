@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     aabb::AABB, interval::Interval, material::Material, point::Point, ray::Ray, vec3::Vec3,
@@ -9,13 +9,13 @@ pub(crate) struct HitRecord {
     #[allow(dead_code)]
     pub(crate) position: Point,
     pub(crate) normal: Vec3,
-    pub(crate) material: Rc<dyn Material>,
+    pub(crate) material: Arc<dyn Material>,
     pub(crate) t: f32,
     pub(crate) front_face: bool,
 }
 
 impl HitRecord {
-    pub(crate) fn new(ray: Ray, t: f32, outward_normal: Vec3, material: Rc<dyn Material>) -> Self {
+    pub(crate) fn new(ray: Ray, t: f32, outward_normal: Vec3, material: Arc<dyn Material>) -> Self {
         let position = ray.at(t);
 
         let front_face = ray.direction.dot(outward_normal) < 0.0;
@@ -35,7 +35,7 @@ impl HitRecord {
     }
 }
 
-pub(crate) trait Hittable: std::fmt::Debug {
+pub(crate) trait Hittable: std::fmt::Debug + Send + Sync {
     fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord>;
 
     fn bounding_box(&self) -> &AABB;
@@ -43,7 +43,7 @@ pub(crate) trait Hittable: std::fmt::Debug {
 
 #[derive(Debug)]
 pub(crate) struct HittableList {
-    pub(crate) objects: Vec<Rc<dyn Hittable>>,
+    pub(crate) objects: Vec<Arc<dyn Hittable>>,
     pub(crate) aabb: AABB,
 }
 
@@ -60,7 +60,7 @@ impl HittableList {
         self.objects.clear();
     }
 
-    pub(crate) fn add(&mut self, object: Rc<dyn Hittable>) {
+    pub(crate) fn add(&mut self, object: Arc<dyn Hittable>) {
         self.aabb.expand(object.bounding_box());
         self.objects.push(object);
     }

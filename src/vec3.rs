@@ -36,7 +36,10 @@ impl Vec3 {
         }
     }
 
-    pub(crate) fn random_unit_vector(rng: &mut ThreadRng) -> Self {
+    pub(crate) fn random_unit_vector<T>(rng: &mut T) -> Self
+    where
+        T: Rng,
+    {
         loop {
             let cube_vector = Vec3::random_in_range(rng, -1.0, 1.0);
             let length_squared = cube_vector.length_squared();
@@ -56,7 +59,10 @@ impl Vec3 {
         }
     }
 
-    pub(crate) fn random_in_unit_disk(rng: &mut ThreadRng) -> Vec3 {
+    pub(crate) fn random_in_unit_disk<T>(rng: &mut T) -> Vec3
+    where
+        T: Rng,
+    {
         loop {
             let p = Vec3::new(
                 rng.random_range(-1.0..1.0),
