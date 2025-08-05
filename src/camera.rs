@@ -1,5 +1,8 @@
 use rand::prelude::*;
-use std::io::{BufWriter, Write};
+use std::{
+    io::{BufWriter, Write},
+    rc::Rc,
+};
 
 use crate::{
     color::Color,
@@ -41,7 +44,7 @@ pub(crate) struct Camera {
 }
 
 impl Camera {
-    pub(crate) fn render(&mut self, world: &mut HittableList) -> std::io::Result<()> {
+    pub(crate) fn render(&mut self, world: Rc<dyn Hittable>) -> std::io::Result<()> {
         // Render
 
         let mut out = BufWriter::new(std::fs::File::create("render.ppm")?);
@@ -58,7 +61,7 @@ impl Camera {
                 for _ in 0..self.samples_per_pixel {
                     let ray = Self::get_ray(self, j, i);
 
-                    pixel_color += Self::ray_color(self, ray, self.max_depth, world);
+                    pixel_color += Self::ray_color(self, ray, self.max_depth, &world);
                 }
 
                 pixel_color /= self.samples_per_pixel as f32;
@@ -178,7 +181,7 @@ impl Camera {
         self.position + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
-    fn ray_color(&mut self, ray: Ray, depth: u32, world: &HittableList) -> Color {
+    fn ray_color(&mut self, ray: Ray, depth: u32, world: &Rc<dyn Hittable>) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }

@@ -1,6 +1,6 @@
 use std::ops;
 
-use crate::vec3::Vec3;
+use crate::{axis::Axis, vec3::Vec3};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub(crate) struct Point {
@@ -13,6 +13,14 @@ pub(crate) struct Point {
 impl Point {
     pub(crate) const fn new(x: f32, y: f32, z: f32) -> Self {
         Point { x, y, z }
+    }
+
+    pub(crate) fn axis(&self, axis: Axis) -> f32 {
+        match axis {
+            Axis::X => self.x,
+            Axis::Y => self.y,
+            Axis::Z => self.z,
+        }
     }
 }
 

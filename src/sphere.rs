@@ -1,25 +1,32 @@
 use std::rc::Rc;
 
 use crate::{
+    aabb::AABB,
     hittable::{HitRecord, Hittable},
     interval::Interval,
     material::Material,
     point::Point,
     ray::Ray,
+    vec3::Vec3,
 };
 
+#[derive(Debug)]
 pub(crate) struct Sphere {
     pub(crate) center: Point,
     pub(crate) radius: f32,
     pub(crate) material: Rc<dyn Material>,
+    pub(crate) aabb: AABB,
 }
 
 impl Sphere {
     pub(crate) fn new(center: Point, radius: f32, material: Rc<dyn Material>) -> Sphere {
+        let radius = radius.max(0.0);
+        let radius_vector = Vec3::new(radius, radius, radius);
         Sphere {
             center,
-            radius: radius.max(0.0),
+            radius,
             material,
+            aabb: AABB::new_between(center - radius_vector, center + radius_vector),
         }
     }
 }
@@ -55,5 +62,9 @@ impl Hittable for Sphere {
             outward_normal,
             self.material.clone(),
         ))
+    }
+
+    fn bounding_box(&self) -> &AABB {
+        &self.aabb
     }
 }

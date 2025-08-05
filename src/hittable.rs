@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use crate::{interval::Interval, material::Material, point::Point, ray::Ray, vec3::Vec3};
+use crate::{
+    aabb::AABB, interval::Interval, material::Material, point::Point, ray::Ray, vec3::Vec3,
+};
 
 #[derive(Clone)]
 pub(crate) struct HitRecord {
@@ -33,24 +35,34 @@ impl HitRecord {
     }
 }
 
-pub(crate) trait Hittable {
+pub(crate) trait Hittable: std::fmt::Debug {
     fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord>;
+
+    fn bounding_box(&self) -> &AABB;
 }
 
-pub(crate) struct HittableList(pub(crate) Vec<Rc<dyn Hittable>>);
+#[derive(Debug)]
+pub(crate) struct HittableList {
+    pub(crate) objects: Vec<Rc<dyn Hittable>>,
+    pub(crate) aabb: AABB,
+}
 
 impl HittableList {
     pub(crate) fn new() -> HittableList {
-        HittableList(Vec::new())
+        HittableList {
+            objects: Vec::new(),
+            aabb: AABB::new(Interval::empty(), Interval::empty(), Interval::empty()),
+        }
     }
 
     #[allow(dead_code)]
     pub(crate) fn clear(&mut self) {
-        self.0.clear();
+        self.objects.clear();
     }
 
     pub(crate) fn add(&mut self, object: Rc<dyn Hittable>) {
-        self.0.push(object);
+        self.aabb.expand(object.bounding_box());
+        self.objects.push(object);
     }
 }
 
@@ -59,7 +71,7 @@ impl Hittable for HittableList {
         let mut potential_hit: Option<HitRecord> = None;
         let mut closest_so_far = ray_interval.max;
 
-        for object in self.0.iter() {
+        for object in self.objects.iter() {
             if let Some(hit) = object.hit(ray, Interval::new(ray_interval.min, closest_so_far)) {
                 closest_so_far = hit.t;
                 potential_hit = Some(hit);
@@ -67,5 +79,9 @@ impl Hittable for HittableList {
         }
 
         potential_hit
+    }
+
+    fn bounding_box(&self) -> &AABB {
+        &self.aabb
     }
 }

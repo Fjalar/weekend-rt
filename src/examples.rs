@@ -1,11 +1,13 @@
 use std::rc::Rc;
 
-use rand::Rng;
+use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
 
 use crate::{
+    bvh::BVHNode,
     camera::Camera,
     color::Color,
-    hittable::HittableList,
+    hittable::{Hittable, HittableList},
     material::{Dielectric, Lambertian, Material, Metal},
     point::Point,
     sphere::Sphere,
@@ -118,8 +120,8 @@ pub(crate) fn large_example_camera() -> Camera {
     )
 }
 
-pub(crate) fn large_example_world() -> HittableList {
-    let mut rng = rand::rng();
+pub(crate) fn large_example_world() -> Rc<dyn Hittable> {
+    let mut rng = ChaCha8Rng::seed_from_u64(1);
 
     let mut world = HittableList::new();
 
@@ -193,5 +195,12 @@ pub(crate) fn large_example_world() -> HittableList {
         material3,
     )));
 
-    world
+    // Rc::new(world)
+    let world_count = world.objects.len();
+
+    let mut new_list = HittableList::new();
+
+    new_list.add(Rc::new(BVHNode::new(&mut world.objects, 0, world_count)));
+
+    Rc::new(new_list)
 }

@@ -2,7 +2,7 @@ use std::ops::{self, Neg};
 
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{color::Color, point::Point};
+use crate::{axis::Axis, color::Color, point::Point};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub(crate) struct Vec3 {
@@ -25,7 +25,10 @@ impl Vec3 {
         }
     }
 
-    pub(crate) fn random_in_range(rng: &mut ThreadRng, min: f32, max: f32) -> Self {
+    pub(crate) fn random_in_range<T>(rng: &mut T, min: f32, max: f32) -> Self
+    where
+        T: Rng,
+    {
         Vec3 {
             x: rng.random_range(min..max),
             y: rng.random_range(min..max),
@@ -63,6 +66,14 @@ impl Vec3 {
             if p.length_squared() < 1.0 {
                 return p;
             }
+        }
+    }
+
+    pub(crate) fn axis(&self, axis: Axis) -> f32 {
+        match axis {
+            Axis::X => self.x,
+            Axis::Y => self.y,
+            Axis::Z => self.z,
         }
     }
 

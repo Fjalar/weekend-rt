@@ -2,7 +2,7 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{color::Color, ray::Ray, vec3::Vec3};
 
-pub(crate) trait Material {
+pub(crate) trait Material: std::fmt::Debug {
     fn scatter(
         &self,
         rng: &mut ThreadRng,
@@ -13,6 +13,7 @@ pub(crate) trait Material {
     ) -> (Ray, Color);
 }
 
+#[derive(Debug)]
 pub(crate) struct Lambertian {
     pub(crate) albedo: Color,
 }
@@ -36,6 +37,7 @@ impl Material for Lambertian {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct Metal {
     pub(crate) albedo: Color,
     pub(crate) fuzz: f32,
@@ -57,6 +59,7 @@ impl Material for Metal {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct Dielectric {
     pub(crate) refraction_index: f32,
 }

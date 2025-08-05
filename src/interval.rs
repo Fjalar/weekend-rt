@@ -1,5 +1,6 @@
 use std::f32;
 
+#[derive(Clone, Copy, Debug)]
 pub(crate) struct Interval {
     pub(crate) min: f32,
     pub(crate) max: f32,
@@ -18,6 +19,13 @@ impl Default for Interval {
 impl Interval {
     pub(crate) const fn new(min: f32, max: f32) -> Interval {
         Interval { min, max }
+    }
+
+    pub(crate) fn tight(a: Interval, b: Interval) -> Self {
+        Interval {
+            min: if a.min <= b.min { a.min } else { b.min },
+            max: if a.max >= b.max { a.max } else { b.max },
+        }
     }
 
     pub(crate) fn size(&self) -> f32 {
@@ -51,5 +59,10 @@ impl Interval {
             min: f32::NEG_INFINITY,
             max: f32::INFINITY,
         }
+    }
+
+    pub(crate) fn expand(self, delta: f32) {
+        let padding = delta / 2.0;
+        Interval::new(self.min - padding, self.max + padding);
     }
 }
