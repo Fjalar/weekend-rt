@@ -8,7 +8,8 @@ use std::{
 };
 
 use crate::{
-    color::Color, hittable::Hittable, interval::Interval, point::Point, ray::Ray, vec3::Vec3,
+    bvh::BVHNode, color::Color, hittable::HitRecord, interval::Interval, point::Point, ray::Ray,
+    vec3::Vec3,
 };
 
 #[allow(dead_code)]
@@ -41,7 +42,7 @@ pub(crate) struct Camera {
 }
 
 impl Camera {
-    pub(crate) fn render(&self, world: Arc<dyn Hittable>) -> std::io::Result<Box<[Color]>> {
+    pub(crate) fn render(&self, world: Arc<BVHNode>) -> std::io::Result<Box<[Color]>> {
         // Render
 
         let num_threads = usize::from(thread::available_parallelism()?);
@@ -215,12 +216,28 @@ impl Camera {
         self.position + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
-    fn ray_color(rng: &mut ChaCha8Rng, ray: Ray, depth: u32, world: &Arc<dyn Hittable>) -> Color {
+    fn ray_color(rng: &mut ChaCha8Rng, ray: Ray, depth: u32, world: &Arc<BVHNode>) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
 
-        if let Some(hit) = world.hit(ray, Interval::new(0.001, f32::INFINITY)) {
+        let ray_interval = Interval::new(0.001, f32::INFINITY);
+        let potential_hit = {
+            let mut potential_hit: Option<HitRecord> = None;
+            let mut closest_so_far = ray_interval.max;
+
+            for object in [world] {
+                if let Some(hit) = object.hit(ray, Interval::new(ray_interval.min, closest_so_far))
+                {
+                    closest_so_far = hit.t;
+                    potential_hit = Some(hit);
+                }
+            }
+
+            potential_hit
+        };
+
+        if let Some(hit) = potential_hit {
             let (scattered_ray, attenuation) =
                 hit.material
                     .scatter(rng, ray, hit.t, hit.normal, hit.front_face);

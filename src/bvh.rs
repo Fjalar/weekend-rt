@@ -1,16 +1,42 @@
 use std::sync::Arc;
 
-use crate::{aabb::AABB, hittable::Hittable};
+use crate::{aabb::AABB, hittable::HitRecord, primitive::Primitive};
 
 #[derive(Debug)]
 pub(crate) struct BVHNode {
-    left: Arc<dyn Hittable>,
-    right: Arc<dyn Hittable>,
+    left: Arc<NodeOrPrim>,
+    right: Arc<NodeOrPrim>,
     aabb: AABB,
 }
 
+#[derive(Debug)]
+pub(crate) enum NodeOrPrim {
+    Node(BVHNode),
+    Prim(Primitive),
+}
+
+impl NodeOrPrim {
+    pub(crate) fn hit(
+        &self,
+        ray: crate::ray::Ray,
+        ray_interval: crate::interval::Interval,
+    ) -> Option<HitRecord> {
+        match self {
+            NodeOrPrim::Node(node) => node.hit(ray, ray_interval),
+            NodeOrPrim::Prim(prim) => prim.hit(ray, ray_interval),
+        }
+    }
+
+    pub(crate) fn bounding_box(&self) -> &AABB {
+        match self {
+            NodeOrPrim::Node(node) => node.bounding_box(),
+            NodeOrPrim::Prim(prim) => prim.bounding_box(),
+        }
+    }
+}
+
 impl BVHNode {
-    pub(crate) fn new(objects: &mut Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> Self {
+    pub(crate) fn new(objects: &mut Vec<Arc<NodeOrPrim>>, start: usize, end: usize) -> Self {
         let mut bounding_box = AABB::empty();
 
         for idx in start..end {
@@ -21,7 +47,7 @@ impl BVHNode {
 
         let longest_axis = bounding_box.longest_axis();
 
-        let key_lambda = |a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+        let key_lambda = |a: &Arc<NodeOrPrim>, b: &Arc<NodeOrPrim>| {
             a.bounding_box()
                 .axis_interval(longest_axis)
                 .min
@@ -39,8 +65,10 @@ impl BVHNode {
 
             let mid = start + object_span / 2;
 
-            let local_left: Arc<dyn Hittable> = Arc::new(BVHNode::new(objects, start, mid));
-            let local_right: Arc<dyn Hittable> = Arc::new(BVHNode::new(objects, mid, end));
+            let local_left: Arc<NodeOrPrim> =
+                Arc::new(NodeOrPrim::Node(BVHNode::new(objects, start, mid)));
+            let local_right: Arc<NodeOrPrim> =
+                Arc::new(NodeOrPrim::Node(BVHNode::new(objects, mid, end)));
 
             (local_left, local_right)
         };
@@ -50,10 +78,8 @@ impl BVHNode {
 
         BVHNode { left, right, aabb }
     }
-}
 
-impl Hittable for BVHNode {
-    fn hit(
+    pub(crate) fn hit(
         &self,
         ray: crate::ray::Ray,
         ray_interval: crate::interval::Interval,

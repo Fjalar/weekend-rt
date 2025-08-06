@@ -1,13 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    axis::Axis,
-    color::Color,
-    hittable::{HitRecord, Hittable},
-    interval::Interval,
-    material::Material,
-    point::Point,
-    vec3::Vec3,
+    axis::Axis, color::Color, hittable::HitRecord, interval::Interval, material::Material,
+    point::Point, vec3::Vec3,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -91,10 +86,8 @@ impl AABB {
             return Axis::Z;
         }
     }
-}
 
-impl Hittable for AABB {
-    fn hit(&self, ray: crate::ray::Ray, ray_interval: Interval) -> Option<HitRecord> {
+    pub(crate) fn hit(&self, ray: crate::ray::Ray, ray_interval: Interval) -> Option<HitRecord> {
         let mut ray_interval_min = ray_interval.min;
         let mut ray_interval_max = ray_interval.max;
         for &axis in Axis::iter() {

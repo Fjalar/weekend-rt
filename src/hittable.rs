@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    aabb::AABB, interval::Interval, material::Material, point::Point, ray::Ray, vec3::Vec3,
+    aabb::AABB, bvh::NodeOrPrim, interval::Interval, material::Material, point::Point,
+    primitive::Primitive, ray::Ray, vec3::Vec3,
 };
 
 #[derive(Clone)]
@@ -35,15 +36,15 @@ impl HitRecord {
     }
 }
 
-pub(crate) trait Hittable: std::fmt::Debug + Send + Sync {
-    fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord>;
+// pub(crate) trait Hittable: std::fmt::Debug + Send + Sync {
+//     fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord>;
 
-    fn bounding_box(&self) -> &AABB;
-}
+//     fn bounding_box(&self) -> &AABB;
+// }
 
 #[derive(Debug)]
 pub(crate) struct HittableList {
-    pub(crate) objects: Vec<Arc<dyn Hittable>>,
+    pub(crate) objects: Vec<Arc<NodeOrPrim>>,
     pub(crate) aabb: AABB,
 }
 
@@ -60,13 +61,11 @@ impl HittableList {
         self.objects.clear();
     }
 
-    pub(crate) fn add(&mut self, object: Arc<dyn Hittable>) {
+    pub(crate) fn add(&mut self, object: Arc<NodeOrPrim>) {
         self.aabb.expand(object.bounding_box());
         self.objects.push(object);
     }
-}
 
-impl Hittable for HittableList {
     fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord> {
         let mut potential_hit: Option<HitRecord> = None;
         let mut closest_so_far = ray_interval.max;

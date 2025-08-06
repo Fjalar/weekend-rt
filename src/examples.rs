@@ -4,84 +4,87 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 
 use crate::{
-    bvh::BVHNode,
+    bvh::{BVHNode, NodeOrPrim},
     camera::Camera,
     color::Color,
-    hittable::{Hittable, HittableList},
+    hittable::HittableList,
     material::Material,
     point::Point,
-    sphere::Sphere,
+    primitive::{
+        Primitive::{self},
+        SphereParams,
+    },
     vec3::Vec3,
 };
 
-#[allow(dead_code)]
-pub(crate) fn small_example_camera() -> Camera {
-    let position = Point::new(-2.0, 2.0, 1.0);
-    let look_at = Point::new(0.0, 0.0, -1.0);
-    let view_up = Vec3::new(0.0, 1.0, 0.0);
-    let focal_length = 3.4;
-    let defocus_angle = 10.0;
-    let aspect_ratio = 16.0 / 9.0;
-    let image_width = 400u32;
-    let vertical_fov = 25.0;
-    let samples_per_pixel = 100u32;
-    let max_depth = 50u32;
+// #[allow(dead_code)]
+// pub(crate) fn small_example_camera() -> Camera {
+//     let position = Point::new(-2.0, 2.0, 1.0);
+//     let look_at = Point::new(0.0, 0.0, -1.0);
+//     let view_up = Vec3::new(0.0, 1.0, 0.0);
+//     let focal_length = 3.4;
+//     let defocus_angle = 10.0;
+//     let aspect_ratio = 16.0 / 9.0;
+//     let image_width = 400u32;
+//     let vertical_fov = 25.0;
+//     let samples_per_pixel = 100u32;
+//     let max_depth = 50u32;
 
-    Camera::new(
-        position,
-        look_at,
-        view_up,
-        focal_length,
-        defocus_angle,
-        aspect_ratio,
-        image_width,
-        vertical_fov,
-        samples_per_pixel,
-        max_depth,
-    )
-}
+//     Camera::new(
+//         position,
+//         look_at,
+//         view_up,
+//         focal_length,
+//         defocus_angle,
+//         aspect_ratio,
+//         image_width,
+//         vertical_fov,
+//         samples_per_pixel,
+//         max_depth,
+//     )
+// }
 
-#[allow(dead_code)]
-pub(crate) fn small_example_world() -> HittableList {
-    let mut world = HittableList::new();
+// #[allow(dead_code)]
+// pub(crate) fn small_example_world() -> HittableList {
+//     let mut world = HittableList::new();
 
-    // Left
-    world.add(Arc::new(Sphere::new(
-        Point::new(-1.0, 0.0, -1.0),
-        0.5,
-        Arc::new(Material::Dielectric(1.5)),
-    )));
+//     // Left
+//     world.add(Arc::new(Sphere::new(
+//         Point::new(-1.0, 0.0, -1.0),
+//         0.5,
+//         Arc::new(Material::Dielectric(1.5)),
+//     )));
 
-    // Air bubble inside left
-    world.add(Arc::new(Sphere::new(
-        Point::new(-1.0, 0.0, -1.0),
-        0.4,
-        Arc::new(Material::Dielectric(1.0 / 1.5)),
-    )));
+//     // Air bubble inside left
+//     world.add(Arc::new(Sphere::new(
+//         Point::new(-1.0, 0.0, -1.0),
+//         0.4,
+//         Arc::new(Material::Dielectric(1.0 / 1.5)),
+//     )));
 
-    // Center
-    world.add(Arc::new(Sphere::new(
-        Point::new(0.0, 0.0, -1.2),
-        0.5,
-        Arc::new(Material::Lambertian(Color::new(0.1, 0.2, 0.5))),
-    )));
+//     // Center
+//     world.add(Arc::new(Sphere::new(
+//         Point::new(0.0, 0.0, -1.2),
+//         0.5,
+//         Arc::new(Material::Lambertian(Color::new(0.1, 0.2, 0.5))),
+//     )));
 
-    // Right
-    world.add(Arc::new(Sphere::new(
-        Point::new(1.0, 0.0, -1.0),
-        0.5,
-        Arc::new(Material::Metal(Color::new(0.8, 0.6, 0.2), 1.0)),
-    )));
+//     // Right
+//     world.add(Arc::new(Sphere::new(
+//         Point::new(1.0, 0.0, -1.0),
+//         0.5,
+//         Arc::new(Material::Metal(Color::new(0.8, 0.6, 0.2), 1.0)),
+//     )));
 
-    // Ground
-    world.add(Arc::new(Sphere::new(
-        Point::new(0.0, -100.5, -1.0),
-        100.0,
-        Arc::new(Material::Lambertian(Color::new(0.8, 0.8, 0.0))),
-    )));
+//     // Ground
+//     world.add(Arc::new(Sphere::new(
+//         Point::new(0.0, -100.5, -1.0),
+//         100.0,
+//         Arc::new(Material::Lambertian(Color::new(0.8, 0.8, 0.0))),
+//     )));
 
-    world
-}
+//     world
+// }
 
 pub(crate) fn large_example_camera() -> Camera {
     let position = Point::new(13.0, 2.0, 3.0);
@@ -109,18 +112,21 @@ pub(crate) fn large_example_camera() -> Camera {
     )
 }
 
-pub(crate) fn large_example_world() -> Arc<dyn Hittable> {
+pub(crate) fn large_example_world() -> Arc<BVHNode> {
     let mut rng = ChaCha8Rng::seed_from_u64(1);
 
-    let mut world = HittableList::new();
+    println!("New hittable list");
+    let mut world = Vec::new();
 
+    println!("New material");
     let ground_material = Arc::new(Material::Lambertian(Color::new(0.5, 0.5, 0.5)));
 
-    world.add(Arc::new(Sphere::new(
-        Point::new(0.0, -1000.0, 0.0),
-        1000.0,
-        ground_material,
-    )));
+    println!("Adding to world");
+    world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
+        SphereParams::new(Point::new(0.0, -1000.0, 0.0), 1000.0, ground_material),
+    ))));
+
+    println!("Loop next");
 
     // Small spheres
     for a in -11..11 {
@@ -147,38 +153,36 @@ pub(crate) fn large_example_world() -> Arc<dyn Hittable> {
                     Arc::new(Material::Dielectric(1.5))
                 };
 
-                world.add(Arc::new(Sphere::new(center, 0.2, sphere_material)));
+                world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
+                    SphereParams::new(center, 0.2, sphere_material),
+                ))));
             }
         }
     }
 
+    println!("Loop finished");
+
     let material1 = Arc::new(Material::Dielectric(1.5));
-    world.add(Arc::new(Sphere::new(
-        Point::new(0.0, 1.0, 0.0),
-        1.0,
-        material1,
-    )));
+    world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
+        SphereParams::new(Point::new(0.0, 1.0, 0.0), 1.0, material1),
+    ))));
 
     let material2 = Arc::new(Material::Lambertian(Color::new(0.4, 0.2, 0.1)));
-    world.add(Arc::new(Sphere::new(
-        Point::new(-4.0, 1.0, 0.0),
-        1.0,
-        material2,
-    )));
+    world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
+        SphereParams::new(Point::new(-4.0, 1.0, 0.0), 1.0, material2),
+    ))));
 
     let material3 = Arc::new(Material::Metal(Color::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Arc::new(Sphere::new(
-        Point::new(4.0, 1.0, 0.0),
-        1.0,
-        material3,
-    )));
+    world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
+        SphereParams::new(Point::new(4.0, 1.0, 0.0), 1.0, material3),
+    ))));
+
+    println!("Done with objects");
 
     // Arc::new(world)
-    let world_count = world.objects.len();
+    let world_count = world.len();
 
-    let mut new_list = HittableList::new();
+    println!("Creating root node");
 
-    new_list.add(Arc::new(BVHNode::new(&mut world.objects, 0, world_count)));
-
-    Arc::new(new_list)
+    Arc::new(BVHNode::new(&mut world, 0, world_count))
 }

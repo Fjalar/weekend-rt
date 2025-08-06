@@ -1,5 +1,4 @@
 use rand::Rng;
-use rand_chacha::ChaCha8Rng;
 
 use crate::{color::Color, ray::Ray, vec3::Vec3};
 
@@ -16,9 +15,9 @@ pub(crate) enum Material {
 }
 
 impl Material {
-    pub(crate) fn scatter(
+    pub(crate) fn scatter<T: Rng>(
         &self,
-        rng: &mut ChaCha8Rng,
+        rng: &mut T,
         ray: Ray,
         t: f32,
         normal: Vec3,
