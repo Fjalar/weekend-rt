@@ -5,6 +5,7 @@ use std::{
     collections::LinkedList,
     io::{BufWriter, Write},
     num,
+    ptr::write_bytes,
     rc::Rc,
     sync::{Arc, Mutex},
     thread::{self, JoinHandle, ScopedJoinHandle},
@@ -94,16 +95,14 @@ impl Camera {
     }
 
     pub(crate) fn write_img(&self, pixels: &[Color]) -> std::io::Result<()> {
-        // Render
-
         let mut out = BufWriter::new(std::fs::File::create("render.ppm")?);
-        writeln!(out, "P3")?;
+        writeln!(out, "P6")?;
         writeln!(out, "{} {}", self.image_width, self.image_height)?;
         writeln!(out, "255")?;
 
         for i in 0..self.image_height {
             for j in 0..self.image_width {
-                writeln!(out, "{}", pixels[(j + i * self.image_width) as usize])?;
+                out.write_all(&pixels[(j + i * self.image_width) as usize].bytes())?;
             }
         }
 

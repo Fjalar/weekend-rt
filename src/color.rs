@@ -14,18 +14,16 @@ pub(crate) struct Color {
 
 impl std::fmt::Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // Gamma correction
-        let r_corrected = Self::linear_to_gamma(self.r);
-        let g_corrected = Self::linear_to_gamma(self.g);
-        let b_corrected = Self::linear_to_gamma(self.b);
+        // Display outputs in decimal without gamma correction
 
         // Clamp to 0..255
         const INTENSITY: Interval = Interval::new(0.0, 0.999);
-        let rbyte = (256.0 * INTENSITY.clamp(r_corrected)) as u8;
-        let gbyte = (256.0 * INTENSITY.clamp(g_corrected)) as u8;
-        let bbyte = (256.0 * INTENSITY.clamp(b_corrected)) as u8;
 
-        write!(f, "{rbyte} {gbyte} {bbyte}",)
+        let rbyte = (256.0 * INTENSITY.clamp(self.r)) as u8;
+        let gbyte = (256.0 * INTENSITY.clamp(self.g)) as u8;
+        let bbyte = (256.0 * INTENSITY.clamp(self.b)) as u8;
+
+        write!(f, "Color({rbyte}, {gbyte}, {bbyte})")
     }
 }
 
@@ -40,6 +38,20 @@ impl Color {
         } else {
             0.0
         }
+    }
+
+    pub(crate) fn bytes(&self) -> [u8; 3] {
+        // Gamma correction
+        let r_corrected = Self::linear_to_gamma(self.r);
+        let g_corrected = Self::linear_to_gamma(self.g);
+        let b_corrected = Self::linear_to_gamma(self.b);
+
+        // Clamp to 0..255
+        const INTENSITY: Interval = Interval::new(0.0, 0.999);
+        let rbyte = (256.0 * INTENSITY.clamp(r_corrected)) as u8;
+        let gbyte = (256.0 * INTENSITY.clamp(g_corrected)) as u8;
+        let bbyte = (256.0 * INTENSITY.clamp(b_corrected)) as u8;
+        [rbyte, gbyte, bbyte]
     }
 }
 
