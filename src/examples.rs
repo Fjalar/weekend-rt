@@ -8,7 +8,7 @@ use crate::{
     camera::Camera,
     color::Color,
     hittable::{Hittable, HittableList},
-    material::{Dielectric, Lambertian, Material, Metal},
+    material::Material,
     point::Point,
     sphere::Sphere,
     vec3::Vec3,
@@ -49,46 +49,35 @@ pub(crate) fn small_example_world() -> HittableList {
     world.add(Arc::new(Sphere::new(
         Point::new(-1.0, 0.0, -1.0),
         0.5,
-        Arc::new(Dielectric {
-            refraction_index: 1.5,
-        }),
+        Arc::new(Material::Dielectric(1.5)),
     )));
 
     // Air bubble inside left
     world.add(Arc::new(Sphere::new(
         Point::new(-1.0, 0.0, -1.0),
         0.4,
-        Arc::new(Dielectric {
-            refraction_index: 1.0 / 1.5,
-        }),
+        Arc::new(Material::Dielectric(1.0 / 1.5)),
     )));
 
     // Center
     world.add(Arc::new(Sphere::new(
         Point::new(0.0, 0.0, -1.2),
         0.5,
-        Arc::new(Lambertian {
-            albedo: Color::new(0.1, 0.2, 0.5),
-        }),
+        Arc::new(Material::Lambertian(Color::new(0.1, 0.2, 0.5))),
     )));
 
     // Right
     world.add(Arc::new(Sphere::new(
         Point::new(1.0, 0.0, -1.0),
         0.5,
-        Arc::new(Metal {
-            albedo: Color::new(0.8, 0.6, 0.2),
-            fuzz: 1.0,
-        }),
+        Arc::new(Material::Metal(Color::new(0.8, 0.6, 0.2), 1.0)),
     )));
 
     // Ground
     world.add(Arc::new(Sphere::new(
         Point::new(0.0, -100.5, -1.0),
         100.0,
-        Arc::new(Lambertian {
-            albedo: Color::new(0.8, 0.8, 0.0),
-        }),
+        Arc::new(Material::Lambertian(Color::new(0.8, 0.8, 0.0))),
     )));
 
     world
@@ -125,9 +114,7 @@ pub(crate) fn large_example_world() -> Arc<dyn Hittable> {
 
     let mut world = HittableList::new();
 
-    let ground_material = Arc::new(Lambertian {
-        albedo: Color::new(0.5, 0.5, 0.5),
-    });
+    let ground_material = Arc::new(Material::Lambertian(Color::new(0.5, 0.5, 0.5)));
 
     world.add(Arc::new(Sphere::new(
         Point::new(0.0, -1000.0, 0.0),
@@ -149,17 +136,15 @@ pub(crate) fn large_example_world() -> Arc<dyn Hittable> {
             if (Vec3::from(center) - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let albedo = Color::from(Vec3::random_in_range(&mut rng, 0.0, 1.0))
                     * Color::from(Vec3::random_in_range(&mut rng, 0.0, 1.0));
-                let sphere_material: Arc<dyn Material> = if choose_material < 0.8 {
+                let sphere_material: Arc<Material> = if choose_material < 0.8 {
                     // diffuse
-                    Arc::new(Lambertian { albedo })
+                    Arc::new(Material::Lambertian(albedo))
                 } else if choose_material < 0.95 {
                     // metal
                     let fuzz = rng.random_range(0.0..0.5);
-                    Arc::new(Metal { albedo, fuzz })
+                    Arc::new(Material::Metal(albedo, fuzz))
                 } else {
-                    Arc::new(Dielectric {
-                        refraction_index: 1.5,
-                    })
+                    Arc::new(Material::Dielectric(1.5))
                 };
 
                 world.add(Arc::new(Sphere::new(center, 0.2, sphere_material)));
@@ -167,28 +152,21 @@ pub(crate) fn large_example_world() -> Arc<dyn Hittable> {
         }
     }
 
-    let material1 = Arc::new(Dielectric {
-        refraction_index: 1.5,
-    });
+    let material1 = Arc::new(Material::Dielectric(1.5));
     world.add(Arc::new(Sphere::new(
         Point::new(0.0, 1.0, 0.0),
         1.0,
         material1,
     )));
 
-    let material2 = Arc::new(Lambertian {
-        albedo: Color::new(0.4, 0.2, 0.1),
-    });
+    let material2 = Arc::new(Material::Lambertian(Color::new(0.4, 0.2, 0.1)));
     world.add(Arc::new(Sphere::new(
         Point::new(-4.0, 1.0, 0.0),
         1.0,
         material2,
     )));
 
-    let material3 = Arc::new(Metal {
-        albedo: Color::new(0.7, 0.6, 0.5),
-        fuzz: 0.0,
-    });
+    let material3 = Arc::new(Material::Metal(Color::new(0.7, 0.6, 0.5), 0.0));
     world.add(Arc::new(Sphere::new(
         Point::new(4.0, 1.0, 0.0),
         1.0,

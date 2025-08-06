@@ -2,22 +2,13 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rayon::prelude::*;
 use std::{
-    collections::LinkedList,
     io::{BufWriter, Write},
-    num,
-    ptr::write_bytes,
-    rc::Rc,
-    sync::{Arc, Mutex},
-    thread::{self, JoinHandle, ScopedJoinHandle},
+    sync::Arc,
+    thread::{self},
 };
 
 use crate::{
-    color::Color,
-    hittable::{Hittable, HittableList},
-    interval::Interval,
-    point::Point,
-    ray::Ray,
-    vec3::Vec3,
+    color::Color, hittable::Hittable, interval::Interval, point::Point, ray::Ray, vec3::Vec3,
 };
 
 #[allow(dead_code)]

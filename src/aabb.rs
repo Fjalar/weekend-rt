@@ -1,11 +1,11 @@
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     axis::Axis,
     color::Color,
     hittable::{HitRecord, Hittable},
     interval::Interval,
-    material::Lambertian,
+    material::Material,
     point::Point,
     vec3::Vec3,
 };
@@ -133,9 +133,7 @@ impl Hittable for AABB {
         Some(HitRecord {
             position: Point::new(0.0, 0.0, 0.0),
             normal: Vec3::new(0.0, 0.0, 0.0),
-            material: Arc::new(Lambertian {
-                albedo: Color::new(0.0, 0.0, 0.0),
-            }),
+            material: Arc::new(Material::Lambertian(Color::new(0.0, 0.0, 0.0))),
             t: ray_interval_max,
             front_face: true,
         })

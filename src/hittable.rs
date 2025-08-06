@@ -9,13 +9,13 @@ pub(crate) struct HitRecord {
     #[allow(dead_code)]
     pub(crate) position: Point,
     pub(crate) normal: Vec3,
-    pub(crate) material: Arc<dyn Material>,
+    pub(crate) material: Arc<Material>,
     pub(crate) t: f32,
     pub(crate) front_face: bool,
 }
 
 impl HitRecord {
-    pub(crate) fn new(ray: Ray, t: f32, outward_normal: Vec3, material: Arc<dyn Material>) -> Self {
+    pub(crate) fn new(ray: Ray, t: f32, outward_normal: Vec3, material: Arc<Material>) -> Self {
         let position = ray.at(t);
 
         let front_face = ray.direction.dot(outward_normal) < 0.0;
