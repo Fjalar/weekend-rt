@@ -49,14 +49,14 @@ pub(crate) struct Camera {
 }
 
 impl Camera {
-    pub(crate) fn render(&self, world: Arc<dyn Hittable>) -> std::io::Result<Vec<Color>> {
+    pub(crate) fn render(&self, world: Arc<dyn Hittable>) -> std::io::Result<Box<[Color]>> {
         // Render
 
         let num_threads = usize::from(thread::available_parallelism()?);
 
         let samples_per_pixel_per_thread = self.samples_per_pixel / num_threads as u32;
 
-        println!("Rendering on {num_threads}");
+        println!("Rendering on {num_threads} thread(s)");
 
         let images = (0..num_threads)
             .into_par_iter()
@@ -67,35 +67,28 @@ impl Camera {
                 let mut output = Vec::<Color>::new();
                 for i in 0..self.image_height {
                     for j in 0..self.image_width {
-                        let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        let pixel_color = (0..samples_per_pixel_per_thread).fold(
+                            Color::new(0.0, 0.0, 0.0),
+                            |acc, _| {
+                                let ray = Self::get_ray(self, &mut rng, j, i);
 
-                        (0..samples_per_pixel_per_thread).for_each(|_| {
-                            let ray = Self::get_ray(self, &mut rng, j, i);
+                                acc + Self::ray_color(&mut rng, ray, self.max_depth, &world_pointer)
+                            },
+                        ) / samples_per_pixel_per_thread as f32;
 
-                            pixel_color += Self::ray_color(
-                                self,
-                                &mut rng,
-                                ray,
-                                self.max_depth,
-                                &world_pointer,
-                            );
-                        });
-
-                        output.push(pixel_color / samples_per_pixel_per_thread as f32);
+                        output.push(pixel_color);
                     }
                 }
                 output
             })
             .collect::<Vec<Vec<Color>>>();
 
-        let mut avg: Vec<Color> = Vec::new();
-        for idx in 0..(self.image_height * self.image_width) as usize {
-            let mut running_total = Color::new(0.0, 0.0, 0.0);
-            (0..images.len()).for_each(|img| {
-                running_total += images[img][idx];
-            });
-            avg.push(running_total / images.len() as f32)
-        }
+        let avg = (0..(self.image_height * self.image_width) as usize)
+            .map(|idx| {
+                (0..images.len()).fold(Color::new(0.0, 0.0, 0.0), |acc, img| acc + images[img][idx])
+                    / images.len() as f32
+            })
+            .collect::<Box<[Color]>>();
 
         Ok(avg)
     }
@@ -232,13 +225,7 @@ impl Camera {
         self.position + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
-    fn ray_color(
-        &self,
-        rng: &mut ChaCha8Rng,
-        ray: Ray,
-        depth: u32,
-        world: &Arc<dyn Hittable>,
-    ) -> Color {
+    fn ray_color(rng: &mut ChaCha8Rng, ray: Ray, depth: u32, world: &Arc<dyn Hittable>) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -247,7 +234,7 @@ impl Camera {
             let (scattered_ray, attenuation) =
                 hit.material
                     .scatter(rng, ray, hit.t, hit.normal, hit.front_face);
-            return attenuation * self.ray_color(rng, scattered_ray, depth - 1, world);
+            return attenuation * Self::ray_color(rng, scattered_ray, depth - 1, world);
         }
 
         // Background gradient
