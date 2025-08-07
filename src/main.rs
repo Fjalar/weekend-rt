@@ -16,7 +16,7 @@ fn main() -> std::io::Result<()> {
     println!("Starting...");
 
     // Scene
-    let world = examples::large_example_world();
+    let (bvh_root, world) = examples::large_example_world();
 
     println!("Created scene");
 
@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
 
     println!("Created camera");
 
-    let pixels = camera.render(world)?;
+    let pixels = camera.render(bvh_root, world)?;
 
     camera.write_img(&pixels)
 }

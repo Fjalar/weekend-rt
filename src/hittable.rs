@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    aabb::AABB, bvh::NodeOrPrim, interval::Interval, material::Material, point::Point,
-    primitive::Primitive, ray::Ray, vec3::Vec3,
+    aabb::AABB, interval::Interval, material::Material, point::Point, primitive::Primitive,
+    ray::Ray, vec3::Vec3,
 };
 
 #[derive(Clone)]
@@ -42,45 +42,45 @@ impl HitRecord {
 //     fn bounding_box(&self) -> &AABB;
 // }
 
-#[derive(Debug)]
-pub(crate) struct HittableList {
-    pub(crate) objects: Vec<Arc<NodeOrPrim>>,
-    pub(crate) aabb: AABB,
-}
+// #[derive(Debug)]
+// pub(crate) struct HittableList {
+//     pub(crate) objects: Vec<Arc<NodeOrPrim>>,
+//     pub(crate) aabb: AABB,
+// }
 
-impl HittableList {
-    pub(crate) fn new() -> HittableList {
-        HittableList {
-            objects: Vec::new(),
-            aabb: AABB::new(Interval::empty(), Interval::empty(), Interval::empty()),
-        }
-    }
+// impl HittableList {
+//     pub(crate) fn new() -> HittableList {
+//         HittableList {
+//             objects: Vec::new(),
+//             aabb: AABB::new(Interval::empty(), Interval::empty(), Interval::empty()),
+//         }
+//     }
 
-    #[allow(dead_code)]
-    pub(crate) fn clear(&mut self) {
-        self.objects.clear();
-    }
+//     #[allow(dead_code)]
+//     pub(crate) fn clear(&mut self) {
+//         self.objects.clear();
+//     }
 
-    pub(crate) fn add(&mut self, object: Arc<NodeOrPrim>) {
-        self.aabb.expand(object.bounding_box());
-        self.objects.push(object);
-    }
+//     pub(crate) fn add(&mut self, object: Arc<NodeOrPrim>) {
+//         self.aabb.expand(object.bounding_box());
+//         self.objects.push(object);
+//     }
 
-    fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord> {
-        let mut potential_hit: Option<HitRecord> = None;
-        let mut closest_so_far = ray_interval.max;
+//     fn hit(&self, ray: Ray, ray_interval: Interval) -> Option<HitRecord> {
+//         let mut potential_hit: Option<HitRecord> = None;
+//         let mut closest_so_far = ray_interval.max;
 
-        for object in self.objects.iter() {
-            if let Some(hit) = object.hit(ray, Interval::new(ray_interval.min, closest_so_far)) {
-                closest_so_far = hit.t;
-                potential_hit = Some(hit);
-            }
-        }
+//         for object in self.objects.iter() {
+//             if let Some(hit) = object.hit(ray, Interval::new(ray_interval.min, closest_so_far)) {
+//                 closest_so_far = hit.t;
+//                 potential_hit = Some(hit);
+//             }
+//         }
 
-        potential_hit
-    }
+//         potential_hit
+//     }
 
-    fn bounding_box(&self) -> &AABB {
-        &self.aabb
-    }
-}
+//     fn bounding_box(&self) -> &AABB {
+//         &self.aabb
+//     }
+// }

@@ -4,16 +4,12 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 
 use crate::{
-    bvh::{BVHNode, NodeOrPrim},
+    bvh::BVHNode,
     camera::Camera,
     color::Color,
-    hittable::HittableList,
     material::Material,
     point::Point,
-    primitive::{
-        Primitive::{self},
-        SphereParams,
-    },
+    primitive::{Primitive, SphereParams},
     vec3::Vec3,
 };
 
@@ -112,19 +108,18 @@ pub(crate) fn large_example_camera() -> Camera {
     )
 }
 
-pub(crate) fn large_example_world() -> Arc<BVHNode> {
+pub(crate) fn large_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
     let mut rng = ChaCha8Rng::seed_from_u64(1);
 
-    println!("New hittable list");
     let mut world = Vec::new();
 
-    println!("New material");
     let ground_material = Arc::new(Material::Lambertian(Color::new(0.5, 0.5, 0.5)));
 
-    println!("Adding to world");
-    world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
-        SphereParams::new(Point::new(0.0, -1000.0, 0.0), 1000.0, ground_material),
-    ))));
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(0.0, -1000.0, 0.0),
+        1000.0,
+        ground_material,
+    )));
 
     println!("Loop next");
 
@@ -153,9 +148,11 @@ pub(crate) fn large_example_world() -> Arc<BVHNode> {
                     Arc::new(Material::Dielectric(1.5))
                 };
 
-                world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
-                    SphereParams::new(center, 0.2, sphere_material),
-                ))));
+                world.push(Primitive::Sphere(SphereParams::new(
+                    center,
+                    0.2,
+                    sphere_material,
+                )));
             }
         }
     }
@@ -163,26 +160,29 @@ pub(crate) fn large_example_world() -> Arc<BVHNode> {
     println!("Loop finished");
 
     let material1 = Arc::new(Material::Dielectric(1.5));
-    world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
-        SphereParams::new(Point::new(0.0, 1.0, 0.0), 1.0, material1),
-    ))));
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(0.0, 1.0, 0.0),
+        1.0,
+        material1,
+    )));
 
     let material2 = Arc::new(Material::Lambertian(Color::new(0.4, 0.2, 0.1)));
-    world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
-        SphereParams::new(Point::new(-4.0, 1.0, 0.0), 1.0, material2),
-    ))));
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(-4.0, 1.0, 0.0),
+        1.0,
+        material2,
+    )));
 
     let material3 = Arc::new(Material::Metal(Color::new(0.7, 0.6, 0.5), 0.0));
-    world.push(Arc::new(NodeOrPrim::Prim(Primitive::Sphere(
-        SphereParams::new(Point::new(4.0, 1.0, 0.0), 1.0, material3),
-    ))));
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(4.0, 1.0, 0.0),
+        1.0,
+        material3,
+    )));
 
-    println!("Done with objects");
-
-    // Arc::new(world)
     let world_count = world.len();
 
-    println!("Creating root node");
+    let bvh_root = BVHNode::new(&mut world, 0, world_count);
 
-    Arc::new(BVHNode::new(&mut world, 0, world_count))
+    (bvh_root, Arc::new(world))
 }

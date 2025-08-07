@@ -8,8 +8,8 @@ use std::{
 };
 
 use crate::{
-    bvh::BVHNode, color::Color, hittable::HitRecord, interval::Interval, point::Point, ray::Ray,
-    vec3::Vec3,
+    bvh::BVHNode, color::Color, hittable::HitRecord, interval::Interval, point::Point,
+    primitive::Primitive, ray::Ray, vec3::Vec3,
 };
 
 #[allow(dead_code)]
@@ -42,7 +42,11 @@ pub(crate) struct Camera {
 }
 
 impl Camera {
-    pub(crate) fn render(&self, world: Arc<BVHNode>) -> std::io::Result<Box<[Color]>> {
+    pub(crate) fn render(
+        &self,
+        bvh_root: Arc<BVHNode>,
+        world: Arc<Vec<Primitive>>,
+    ) -> std::io::Result<Box<[Color]>> {
         // Render
 
         let num_threads = usize::from(thread::available_parallelism()?);
@@ -55,6 +59,7 @@ impl Camera {
             .into_par_iter()
             .map(|idx| {
                 let mut rng = ChaCha8Rng::seed_from_u64(idx as u64);
+                let bvh_pointer = bvh_root.clone();
                 let world_pointer = world.clone();
 
                 let mut output = Vec::<Color>::new();
@@ -65,7 +70,13 @@ impl Camera {
                             |acc, _| {
                                 let ray = Self::get_ray(self, &mut rng, j, i);
 
-                                acc + Self::ray_color(&mut rng, ray, self.max_depth, &world_pointer)
+                                acc + Self::ray_color(
+                                    &mut rng,
+                                    ray,
+                                    self.max_depth,
+                                    &bvh_pointer,
+                                    &world_pointer,
+                                )
                             },
                         ) / samples_per_pixel_per_thread as f32;
 
@@ -216,7 +227,13 @@ impl Camera {
         self.position + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
-    fn ray_color(rng: &mut ChaCha8Rng, ray: Ray, depth: u32, world: &Arc<BVHNode>) -> Color {
+    fn ray_color(
+        rng: &mut ChaCha8Rng,
+        ray: Ray,
+        depth: u32,
+        bvh_root: &Arc<BVHNode>,
+        world: &Arc<Vec<Primitive>>,
+    ) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -226,12 +243,11 @@ impl Camera {
             let mut potential_hit: Option<HitRecord> = None;
             let mut closest_so_far = ray_interval.max;
 
-            for object in [world] {
-                if let Some(hit) = object.hit(ray, Interval::new(ray_interval.min, closest_so_far))
-                {
-                    closest_so_far = hit.t;
-                    potential_hit = Some(hit);
-                }
+            if let Some(hit) =
+                bvh_root.hit(ray, Interval::new(ray_interval.min, closest_so_far), world)
+            {
+                closest_so_far = hit.t;
+                potential_hit = Some(hit);
             }
 
             potential_hit
@@ -241,7 +257,7 @@ impl Camera {
             let (scattered_ray, attenuation) =
                 hit.material
                     .scatter(rng, ray, hit.t, hit.normal, hit.front_face);
-            return attenuation * Self::ray_color(rng, scattered_ray, depth - 1, world);
+            return attenuation * Self::ray_color(rng, scattered_ray, depth - 1, bvh_root, world);
         }
 
         // Background gradient
