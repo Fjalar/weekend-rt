@@ -20,7 +20,6 @@ fn main() -> std::io::Result<()> {
 
     println!("Created scene");
 
-    // Mutable due to containing ThreadRng that needs mutability to work
     let camera = examples::large_example_camera();
 
     println!("Created camera");
