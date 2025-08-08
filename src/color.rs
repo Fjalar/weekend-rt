@@ -1,7 +1,4 @@
-use std::{
-    iter::{self, Sum},
-    ops,
-};
+use std::ops;
 
 use crate::{interval::Interval, vec3::Vec3};
 

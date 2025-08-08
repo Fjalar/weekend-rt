@@ -13,6 +13,7 @@ pub(crate) struct Aabb {
 }
 
 impl Aabb {
+    #[allow(dead_code)]
     pub(crate) fn new(x: Interval, y: Interval, z: Interval) -> Self {
         Aabb { x, y, z }
     }
@@ -25,6 +26,7 @@ impl Aabb {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn new_from_point(p: Point) -> Aabb {
         Aabb {
             x: Interval::new(p.x, p.x),
@@ -75,15 +77,11 @@ impl Aabb {
         let zx = self.z.size() > self.x.size();
 
         if xy {
-            if zx {
-                return Axis::Z;
-            } else {
-                return Axis::X;
-            }
+            if zx { Axis::Z } else { Axis::X }
         } else if yz {
-            return Axis::Y;
+            Axis::Y
         } else {
-            return Axis::Z;
+            Axis::Z
         }
     }
 
@@ -130,9 +128,5 @@ impl Aabb {
             t: ray_interval_max,
             front_face: true,
         })
-    }
-
-    fn bounding_box(&self) -> &Aabb {
-        self
     }
 }

@@ -40,9 +40,9 @@ pub(crate) fn small_example_camera() -> Camera {
     )
 }
 
-#[allow(dead_code, clippy::vec_init_then_push)]
+#[allow(dead_code)]
 pub(crate) fn small_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
-    let mut world = Vec::new();
+    let mut world = Vec::with_capacity(5);
 
     // Left
     world.push(Primitive::Sphere(SphereParams::new(
@@ -115,7 +115,7 @@ pub(crate) fn large_example_camera() -> Camera {
 pub(crate) fn large_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
     let mut rng = ChaCha8Rng::seed_from_u64(1);
 
-    let mut world = Vec::new();
+    let mut world = Vec::with_capacity(485);
 
     let ground_material = Arc::new(Material::Lambertian(Color::new(0.5, 0.5, 0.5)));
 
@@ -124,8 +124,6 @@ pub(crate) fn large_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
         1000.0,
         ground_material,
     )));
-
-    println!("Loop next");
 
     // Small spheres
     for a in -11..11 {

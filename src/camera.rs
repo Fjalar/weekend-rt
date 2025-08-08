@@ -51,7 +51,7 @@ impl Camera {
 
         let num_threads = usize::from(thread::available_parallelism()?);
 
-        let samples_per_pixel_per_thread = self.samples_per_pixel / num_threads as u32;
+        let samples_per_pixel_per_thread = (self.samples_per_pixel / num_threads as u32).min(1);
 
         println!("Rendering on {num_threads} thread(s)");
 
