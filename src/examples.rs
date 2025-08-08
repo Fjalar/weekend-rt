@@ -13,74 +13,78 @@ use crate::{
     vec3::Vec3,
 };
 
-// #[allow(dead_code)]
-// pub(crate) fn small_example_camera() -> Camera {
-//     let position = Point::new(-2.0, 2.0, 1.0);
-//     let look_at = Point::new(0.0, 0.0, -1.0);
-//     let view_up = Vec3::new(0.0, 1.0, 0.0);
-//     let focal_length = 3.4;
-//     let defocus_angle = 10.0;
-//     let aspect_ratio = 16.0 / 9.0;
-//     let image_width = 400u32;
-//     let vertical_fov = 25.0;
-//     let samples_per_pixel = 100u32;
-//     let max_depth = 50u32;
+#[allow(dead_code)]
+pub(crate) fn small_example_camera() -> Camera {
+    let position = Point::new(-2.0, 2.0, 1.0);
+    let look_at = Point::new(0.0, 0.0, -1.0);
+    let view_up = Vec3::new(0.0, 1.0, 0.0);
+    let focal_length = 3.4;
+    let defocus_angle = 10.0;
+    let aspect_ratio = 16.0 / 9.0;
+    let image_width = 400u32;
+    let vertical_fov = 25.0;
+    let samples_per_pixel = 100u32;
+    let max_depth = 50u32;
 
-//     Camera::new(
-//         position,
-//         look_at,
-//         view_up,
-//         focal_length,
-//         defocus_angle,
-//         aspect_ratio,
-//         image_width,
-//         vertical_fov,
-//         samples_per_pixel,
-//         max_depth,
-//     )
-// }
+    Camera::new(
+        position,
+        look_at,
+        view_up,
+        focal_length,
+        defocus_angle,
+        aspect_ratio,
+        image_width,
+        vertical_fov,
+        samples_per_pixel,
+        max_depth,
+    )
+}
 
-// #[allow(dead_code)]
-// pub(crate) fn small_example_world() -> HittableList {
-//     let mut world = HittableList::new();
+#[allow(dead_code, clippy::vec_init_then_push)]
+pub(crate) fn small_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
+    let mut world = Vec::new();
 
-//     // Left
-//     world.add(Arc::new(Sphere::new(
-//         Point::new(-1.0, 0.0, -1.0),
-//         0.5,
-//         Arc::new(Material::Dielectric(1.5)),
-//     )));
+    // Left
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(-1.0, 0.0, -1.0),
+        0.5,
+        Arc::new(Material::Dielectric(1.5)),
+    )));
 
-//     // Air bubble inside left
-//     world.add(Arc::new(Sphere::new(
-//         Point::new(-1.0, 0.0, -1.0),
-//         0.4,
-//         Arc::new(Material::Dielectric(1.0 / 1.5)),
-//     )));
+    // Air bubble inside left
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(-1.0, 0.0, -1.0),
+        0.4,
+        Arc::new(Material::Dielectric(1.0 / 1.5)),
+    )));
 
-//     // Center
-//     world.add(Arc::new(Sphere::new(
-//         Point::new(0.0, 0.0, -1.2),
-//         0.5,
-//         Arc::new(Material::Lambertian(Color::new(0.1, 0.2, 0.5))),
-//     )));
+    // Center
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(0.0, 0.0, -1.2),
+        0.5,
+        Arc::new(Material::Lambertian(Color::new(0.1, 0.2, 0.5))),
+    )));
 
-//     // Right
-//     world.add(Arc::new(Sphere::new(
-//         Point::new(1.0, 0.0, -1.0),
-//         0.5,
-//         Arc::new(Material::Metal(Color::new(0.8, 0.6, 0.2), 1.0)),
-//     )));
+    // Right
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(1.0, 0.0, -1.0),
+        0.5,
+        Arc::new(Material::Metal(Color::new(0.8, 0.6, 0.2), 1.0)),
+    )));
 
-//     // Ground
-//     world.add(Arc::new(Sphere::new(
-//         Point::new(0.0, -100.5, -1.0),
-//         100.0,
-//         Arc::new(Material::Lambertian(Color::new(0.8, 0.8, 0.0))),
-//     )));
+    // Ground
+    world.push(Primitive::Sphere(SphereParams::new(
+        Point::new(0.0, -100.5, -1.0),
+        100.0,
+        Arc::new(Material::Lambertian(Color::new(0.8, 0.8, 0.0))),
+    )));
 
-//     world
-// }
+    let world_count = world.len();
+
+    let bvh_root = BVHNode::new(&mut world, 0, world_count);
+
+    (bvh_root, Arc::new(world))
+}
 
 pub(crate) fn large_example_camera() -> Camera {
     let position = Point::new(13.0, 2.0, 3.0);
