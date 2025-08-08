@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    aabb::AABB, interval::Interval, material::Material, point::Point, primitive::Primitive,
-    ray::Ray, vec3::Vec3,
-};
+use crate::{material::Material, point::Point, ray::Ray, vec3::Vec3};
 
 #[derive(Clone)]
 pub(crate) struct HitRecord {

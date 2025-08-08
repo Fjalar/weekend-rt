@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    aabb::AABB, hittable::HitRecord, interval::Interval, material::Material, point::Point,
+    aabb::Aabb, hittable::HitRecord, interval::Interval, material::Material, point::Point,
     ray::Ray, vec3::Vec3,
 };
 
@@ -10,7 +10,7 @@ pub(crate) struct SphereParams {
     pub(crate) center: Point,
     pub(crate) radius: f32,
     pub(crate) material: Arc<Material>,
-    pub(crate) aabb: AABB,
+    pub(crate) aabb: Aabb,
 }
 
 #[derive(Debug)]
@@ -55,7 +55,7 @@ impl Primitive {
         }
     }
 
-    pub(crate) fn bounding_box(&self) -> &AABB {
+    pub(crate) fn bounding_box(&self) -> &Aabb {
         match self {
             Primitive::Sphere(params) => params.bounding_box(),
         }
@@ -70,11 +70,11 @@ impl SphereParams {
             center,
             radius,
             material,
-            aabb: AABB::new_between(center - radius_vector, center + radius_vector),
+            aabb: Aabb::new_between(center - radius_vector, center + radius_vector),
         }
     }
 
-    fn bounding_box(&self) -> &AABB {
+    fn bounding_box(&self) -> &Aabb {
         &self.aabb
     }
 }

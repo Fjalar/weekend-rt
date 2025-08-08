@@ -6,34 +6,34 @@ use crate::{
 };
 
 #[derive(Clone, Copy, Debug)]
-pub(crate) struct AABB {
+pub(crate) struct Aabb {
     pub(crate) x: Interval,
     pub(crate) y: Interval,
     pub(crate) z: Interval,
 }
 
-impl AABB {
+impl Aabb {
     pub(crate) fn new(x: Interval, y: Interval, z: Interval) -> Self {
-        AABB { x, y, z }
+        Aabb { x, y, z }
     }
 
     pub(crate) fn empty() -> Self {
-        AABB {
+        Aabb {
             x: Interval::empty(),
             y: Interval::empty(),
             z: Interval::empty(),
         }
     }
 
-    pub(crate) fn new_from_point(p: Point) -> AABB {
-        AABB {
+    pub(crate) fn new_from_point(p: Point) -> Aabb {
+        Aabb {
             x: Interval::new(p.x, p.x),
             y: Interval::new(p.y, p.y),
             z: Interval::new(p.z, p.z),
         }
     }
 
-    pub(crate) fn expand(&mut self, box1: &AABB) {
+    pub(crate) fn expand(&mut self, box1: &Aabb) {
         self.x = Interval::tight(self.x, box1.x);
         self.y = Interval::tight(self.y, box1.y);
         self.z = Interval::tight(self.z, box1.z);
@@ -48,7 +48,7 @@ impl AABB {
     }
 
     pub(crate) fn new_between(a: Point, b: Point) -> Self {
-        AABB {
+        Aabb {
             x: if a.x <= b.x {
                 Interval::new(a.x, b.x)
             } else {
@@ -132,7 +132,7 @@ impl AABB {
         })
     }
 
-    fn bounding_box(&self) -> &AABB {
+    fn bounding_box(&self) -> &Aabb {
         self
     }
 }

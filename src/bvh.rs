@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{aabb::AABB, hittable::HitRecord, interval::Interval, primitive::Primitive};
+use crate::{aabb::Aabb, hittable::HitRecord, interval::Interval, primitive::Primitive};
 
 #[derive(Debug)]
 pub(crate) struct BVHNode {
@@ -8,38 +8,12 @@ pub(crate) struct BVHNode {
     right: Option<Arc<BVHNode>>,
     start_idx: usize,
     primitive_count: usize,
-    aabb: AABB,
+    aabb: Aabb,
 }
-
-// #[derive(Debug)]
-// pub(crate) enum NodeOrPrim {
-//     Node(&'a BVHNode),
-//     Prim(&'a Primitive),
-// }
-
-// impl NodeOrPrim<'_> {
-//     pub(crate) fn hit(
-//         &self,
-//         ray: crate::ray::Ray,
-//         ray_interval: crate::interval::Interval,
-//     ) -> Option<HitRecord> {
-//         match self {
-//             NodeOrPrim::Node(node) => node.hit(ray, ray_interval),
-//             NodeOrPrim::Prim(prim) => prim.hit(ray, ray_interval),
-//         }
-//     }
-
-//     pub(crate) fn bounding_box(&self) -> &AABB {
-//         match self {
-//             NodeOrPrim::Node(node) => node.bounding_box(),
-//             NodeOrPrim::Prim(prim) => prim.bounding_box(),
-//         }
-//     }
-// }
 
 impl BVHNode {
     pub(crate) fn new(objects: &mut Vec<Primitive>, start: usize, end: usize) -> Arc<Self> {
-        let mut bounding_box = AABB::empty();
+        let mut bounding_box = Aabb::empty();
 
         for idx in start..end {
             if let Some(obj) = objects.get(idx) {
@@ -59,9 +33,9 @@ impl BVHNode {
         let object_span = end - start;
 
         let (left, right, start_idx, primitive_count) = if object_span == 1 {
-            (None, None, start as usize, 1usize)
+            (None, None, start, 1usize)
         } else if object_span == 2 {
-            (None, None, start as usize, 2usize)
+            (None, None, start, 2usize)
         } else {
             objects.as_mut_slice()[start..end].sort_by(key_lambda);
 
@@ -134,7 +108,7 @@ impl BVHNode {
         None
     }
 
-    fn bounding_box(&self) -> &crate::aabb::AABB {
+    fn bounding_box(&self) -> &crate::aabb::Aabb {
         &self.aabb
     }
 }

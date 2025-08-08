@@ -8,8 +8,8 @@ use std::{
 };
 
 use crate::{
-    bvh::BVHNode, color::Color, hittable::HitRecord, interval::Interval, point::Point,
-    primitive::Primitive, ray::Ray, vec3::Vec3,
+    bvh::BVHNode, color::Color, interval::Interval, point::Point, primitive::Primitive, ray::Ray,
+    vec3::Vec3,
 };
 
 #[allow(dead_code)]
@@ -239,19 +239,8 @@ impl Camera {
         }
 
         let ray_interval = Interval::new(0.001, f32::INFINITY);
-        let potential_hit = {
-            let mut potential_hit: Option<HitRecord> = None;
-            let mut closest_so_far = ray_interval.max;
 
-            if let Some(hit) =
-                bvh_root.hit(ray, Interval::new(ray_interval.min, closest_so_far), world)
-            {
-                closest_so_far = hit.t;
-                potential_hit = Some(hit);
-            }
-
-            potential_hit
-        };
+        let potential_hit = bvh_root.hit(ray, ray_interval, world);
 
         if let Some(hit) = potential_hit {
             let (scattered_ray, attenuation) =
