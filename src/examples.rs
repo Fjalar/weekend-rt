@@ -7,6 +7,7 @@ use crate::{
     bvh::BVHNode,
     camera::Camera,
     color::Color,
+    image::Image,
     material::Material,
     point::Point,
     primitive::{Primitive, SphereParams},
@@ -197,4 +198,47 @@ pub(crate) fn large_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
     let bvh_root = BVHNode::new(&mut world, 0, world_count);
 
     (bvh_root, Arc::new(world))
+}
+
+pub(crate) fn earth() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
+    let position = Point::new(1.0, 1.0, 12.0);
+    let look_at = Point::new(0.0, 0.0, 0.0);
+    let view_up = Vec3::new(0.0, 1.0, 0.0);
+    let focal_length = 1.0;
+    let defocus_angle = 0.0;
+    let aspect_ratio = 16.0 / 9.0;
+    let image_width = 400;
+    let vertical_fov = 20.0;
+    let samples_per_pixel = 100;
+    let max_depth = 50;
+
+    let camera = Camera::new(
+        position,
+        look_at,
+        view_up,
+        focal_length,
+        defocus_angle,
+        aspect_ratio,
+        image_width,
+        vertical_fov,
+        samples_per_pixel,
+        max_depth,
+    );
+
+    let earth_texture = Arc::new(Texture::Image(
+        Image::load("./src/nasa_bmng_ascii.ppm").unwrap(),
+    ));
+    let earth_material = Arc::new(Material::Lambertian(earth_texture));
+    let globe = Primitive::Sphere(SphereParams::new(
+        Point::new(0.0, 0.0, 0.0),
+        2.0,
+        earth_material,
+    ));
+
+    let mut world = vec![globe];
+
+    let world_count = world.len();
+    let bvh_root = BVHNode::new(&mut world, 0, world_count);
+
+    (camera, bvh_root, Arc::new(world))
 }

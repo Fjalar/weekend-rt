@@ -1,9 +1,10 @@
-use crate::{color::Color, point::Point};
+use crate::{color::Color, image::Image, point::Point};
 
 #[derive(Debug)]
 pub(crate) enum Texture {
     Color(Color),
     Checker(f32, Color, Color),
+    Image(Image),
 }
 
 impl Texture {
@@ -19,6 +20,20 @@ impl Texture {
                     *c1
                 } else {
                     *c2
+                }
+            }
+            Texture::Image(image) => {
+                // flip v to image coordinates
+                let u = u.clamp(0.0, 1.0);
+                let v = 1.0 - v.clamp(0.0, 1.0);
+
+                let i = (u * image.width as f32) as usize;
+                let j = (v * image.height as f32) as usize;
+                if let Some(pixel) = image.sample(i, j) {
+                    let color_scale = 1.0 / 255.0;
+                    pixel
+                } else {
+                    Color::new(1.0, 0.0, 1.0)
                 }
             }
         }

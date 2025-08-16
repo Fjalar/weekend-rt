@@ -5,6 +5,7 @@ mod camera;
 mod color;
 mod examples;
 mod hittable;
+mod image;
 mod interval;
 mod material;
 mod point;
@@ -14,13 +15,7 @@ mod texture;
 mod vec3;
 
 fn main() -> std::io::Result<()> {
-    let (bvh_root, world) = examples::large_example_world();
-
-    println!("Created world");
-
-    let camera = examples::large_example_camera();
-
-    println!("Created camera");
+    let (camera, bvh_root, world) = examples::earth();
 
     let pixels = camera.render(bvh_root, world)?;
 

@@ -245,7 +245,7 @@ impl Camera {
         if let Some(hit) = potential_hit {
             let (scattered_ray, attenuation) =
                 hit.material
-                    .scatter(rng, ray, hit.t, hit.normal, hit.front_face);
+                    .scatter(rng, ray, hit.t, hit.u, hit.v, hit.normal, hit.front_face);
             return attenuation * Self::ray_color(rng, scattered_ray, depth - 1, bvh_root, world);
         }
 

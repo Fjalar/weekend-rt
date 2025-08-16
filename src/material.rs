@@ -22,6 +22,8 @@ impl Material {
         rng: &mut T,
         ray: Ray,
         t: f32,
+        u: f32,
+        v: f32,
         normal: Vec3,
         front_face: bool,
     ) -> (Ray, Color) {
@@ -35,7 +37,7 @@ impl Material {
 
                 (
                     Ray::new(ray.at(t), scatter_direction),
-                    tex.sample(0.0, 0.0, ray.at(t)),
+                    tex.sample(u, v, ray.at(t)),
                 )
             }
             Material::Metal(albedo, fuzz) => {

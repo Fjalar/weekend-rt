@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{f32::consts::PI, sync::Arc};
 
 use crate::{
     aabb::Aabb, hittable::HitRecord, interval::Interval, material::Material, point::Point,
@@ -45,9 +45,13 @@ impl Primitive {
                 let position = ray.at(root);
                 let outward_normal = (position - params.center) / params.radius;
 
+                let (u, v) = Self::get_sphere_uv(Point::from(outward_normal));
+
                 Some(HitRecord::new(
                     ray,
                     root,
+                    u,
+                    v,
                     outward_normal,
                     params.material.clone(),
                 ))
@@ -59,6 +63,20 @@ impl Primitive {
         match self {
             Primitive::Sphere(params) => params.bounding_box(),
         }
+    }
+
+    fn get_sphere_uv(p: Point) -> (f32, f32) {
+        // p: a given point on the sphere of radius one, centered at the origin.
+        // u: returned value [0,1] of angle around the Y axis from X=-1.
+        // v: returned value [0,1] of angle from Y=-1 to Y=+1.
+        //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+        //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+        //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+        let theta = f32::acos(-p.y);
+        let phi = (-p.z).atan2(p.x) + PI;
+
+        (phi / (2.0 * PI), theta / PI)
     }
 }
 
