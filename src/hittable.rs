@@ -9,6 +9,8 @@ pub(crate) struct HitRecord {
     pub(crate) normal: Vec3,
     pub(crate) material: Arc<Material>,
     pub(crate) t: f32,
+    pub(crate) u: f32,
+    pub(crate) v: f32,
     pub(crate) front_face: bool,
 }
 
@@ -28,6 +30,8 @@ impl HitRecord {
             normal,
             material,
             t,
+            u: 0.0,
+            v: 0.0,
             front_face,
         }
     }

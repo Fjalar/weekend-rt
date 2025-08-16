@@ -1,11 +1,13 @@
+use std::sync::Arc;
+
 use rand::Rng;
 
-use crate::{color::Color, ray::Ray, vec3::Vec3};
+use crate::{color::Color, ray::Ray, texture::Texture, vec3::Vec3};
 
 #[derive(Debug)]
 pub(crate) enum Material {
     // albedo
-    Lambertian(Color),
+    Lambertian(Arc<Texture>),
 
     // albedo, fuzz
     Metal(Color, f32),
@@ -24,14 +26,17 @@ impl Material {
         front_face: bool,
     ) -> (Ray, Color) {
         match self {
-            Material::Lambertian(albedo) => {
+            Material::Lambertian(tex) => {
                 let mut scatter_direction = normal + Vec3::random_unit_vector(rng);
 
                 if scatter_direction.near_zero() {
                     scatter_direction = normal
                 }
 
-                (Ray::new(ray.at(t), scatter_direction), *albedo)
+                (
+                    Ray::new(ray.at(t), scatter_direction),
+                    tex.sample(0.0, 0.0, ray.at(t)),
+                )
             }
             Material::Metal(albedo, fuzz) => {
                 let reflected = ray.direction.reflect(normal);

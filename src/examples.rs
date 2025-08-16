@@ -10,6 +10,7 @@ use crate::{
     material::Material,
     point::Point,
     primitive::{Primitive, SphereParams},
+    texture::Texture,
     vec3::Vec3,
 };
 
@@ -62,7 +63,9 @@ pub(crate) fn small_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
     world.push(Primitive::Sphere(SphereParams::new(
         Point::new(0.0, 0.0, -1.2),
         0.5,
-        Arc::new(Material::Lambertian(Color::new(0.1, 0.2, 0.5))),
+        Arc::new(Material::Lambertian(Arc::new(Texture::from_color(
+            Color::new(0.1, 0.2, 0.5),
+        )))),
     )));
 
     // Right
@@ -76,7 +79,9 @@ pub(crate) fn small_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
     world.push(Primitive::Sphere(SphereParams::new(
         Point::new(0.0, -100.5, -1.0),
         100.0,
-        Arc::new(Material::Lambertian(Color::new(0.8, 0.8, 0.0))),
+        Arc::new(Material::Lambertian(Arc::new(Texture::from_color(
+            Color::new(0.8, 0.8, 0.0),
+        )))),
     )));
 
     let world_count = world.len();
@@ -117,7 +122,11 @@ pub(crate) fn large_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
 
     let mut world = Vec::with_capacity(485);
 
-    let ground_material = Arc::new(Material::Lambertian(Color::new(0.5, 0.5, 0.5)));
+    let ground_material = Arc::new(Material::Lambertian(Arc::new(Texture::Checker(
+        1.0 / 0.32,
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ))));
 
     world.push(Primitive::Sphere(SphereParams::new(
         Point::new(0.0, -1000.0, 0.0),
@@ -139,9 +148,10 @@ pub(crate) fn large_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
             if (Vec3::from(center) - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let albedo = Color::from(Vec3::random_in_range(&mut rng, 0.0, 1.0))
                     * Color::from(Vec3::random_in_range(&mut rng, 0.0, 1.0));
+                let solid_color_material = Arc::new(Texture::from_color(albedo));
                 let sphere_material: Arc<Material> = if choose_material < 0.8 {
                     // diffuse
-                    Arc::new(Material::Lambertian(albedo))
+                    Arc::new(Material::Lambertian(solid_color_material))
                 } else if choose_material < 0.95 {
                     // metal
                     let fuzz = rng.random_range(0.0..0.5);
@@ -159,8 +169,6 @@ pub(crate) fn large_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
         }
     }
 
-    println!("Loop finished");
-
     let material1 = Arc::new(Material::Dielectric(1.5));
     world.push(Primitive::Sphere(SphereParams::new(
         Point::new(0.0, 1.0, 0.0),
@@ -168,7 +176,9 @@ pub(crate) fn large_example_world() -> (Arc<BVHNode>, Arc<Vec<Primitive>>) {
         material1,
     )));
 
-    let material2 = Arc::new(Material::Lambertian(Color::new(0.4, 0.2, 0.1)));
+    let material2 = Arc::new(Material::Lambertian(Arc::new(Texture::from_color(
+        Color::new(0.4, 0.2, 0.1),
+    ))));
     world.push(Primitive::Sphere(SphereParams::new(
         Point::new(-4.0, 1.0, 0.0),
         1.0,

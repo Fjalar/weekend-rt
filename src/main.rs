@@ -10,6 +10,7 @@ mod material;
 mod point;
 mod primitive;
 mod ray;
+mod texture;
 mod vec3;
 
 fn main() -> std::io::Result<()> {

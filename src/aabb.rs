@@ -124,8 +124,10 @@ impl Aabb {
         Some(HitRecord {
             position: Point::new(0.0, 0.0, 0.0),
             normal: Vec3::new(0.0, 0.0, 0.0),
-            material: Arc::new(Material::Lambertian(Color::new(0.0, 0.0, 0.0))),
+            material: Arc::new(Material::Metal(Color::new(0.0, 0.0, 0.0), 0.0)),
             t: ray_interval_max,
+            u: 0.0,
+            v: 0.0,
             front_face: true,
         })
     }
