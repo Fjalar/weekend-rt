@@ -1,0 +1,2 @@
+resources/nasa_bmng_ascii.ppm filter=lfs diff=lfs merge=lfs -text
+resources/nasa_bmng.ppm filter=lfs diff=lfs merge=lfs -text

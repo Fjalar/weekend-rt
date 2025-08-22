@@ -225,7 +225,9 @@ pub(crate) fn earth() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
         max_depth,
     );
 
-    let earth_texture = Arc::new(Texture::Image(Image::load("./src/nasa_bmng.ppm").unwrap()));
+    let earth_texture = Arc::new(Texture::Image(
+        Image::load("./resources/nasa_bmng.ppm").unwrap(),
+    ));
     let earth_material = Arc::new(Material::Lambertian(earth_texture));
     let globe = Primitive::Sphere(SphereParams::new(
         Point::new(0.0, 0.0, 0.0),
