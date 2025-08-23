@@ -1,7 +1,6 @@
 use std::{
-    io::{self, BufRead, ErrorKind},
+    io::{self, ErrorKind},
     str::{FromStr, from_utf8},
-    string,
 };
 
 use crate::color::Color;
