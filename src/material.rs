@@ -17,6 +17,7 @@ pub(crate) enum Material {
 }
 
 impl Material {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn scatter<T: Rng>(
         &self,
         rng: &mut T,

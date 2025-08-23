@@ -15,6 +15,7 @@ impl Axis {
         AXES.iter()
     }
 
+    #[allow(dead_code)]
     const ALL: [Axis; 3] = [Axis::X, Axis::Y, Axis::Z];
 }
 
