@@ -10,6 +10,7 @@ mod hittable;
 mod image;
 mod interval;
 mod material;
+mod noise;
 mod point;
 mod primitive;
 mod ray;
@@ -22,6 +23,7 @@ fn main() -> std::io::Result<()> {
 2: Many Spheres
 3: Checkers
 4: Earth
+5: Perlin
 Choose scene: "
     );
 
@@ -36,6 +38,7 @@ Choose scene: "
         "2" => examples::many_spheres(),
         "3" => examples::checkers(),
         "4" => examples::earth(),
+        "5" => examples::perlin(),
         _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
     };
 

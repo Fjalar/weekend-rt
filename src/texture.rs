@@ -1,10 +1,11 @@
-use crate::{color::Color, image::Image, point::Point};
+use crate::{color::Color, image::Image, noise::Perlin, point::Point};
 
 #[derive(Debug)]
 pub(crate) enum Texture {
     Color(Color),
     Checker(f32, Color, Color),
     Image(Image),
+    Noise(Perlin),
 }
 
 impl Texture {
@@ -36,6 +37,7 @@ impl Texture {
                     Color::new(1.0, 0.0, 1.0)
                 }
             }
+            Texture::Noise(perlin) => perlin.value(&p),
         }
     }
 
