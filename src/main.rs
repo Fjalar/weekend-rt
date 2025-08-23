@@ -1,4 +1,4 @@
-use std::io::{self, stdin};
+use std::io;
 
 mod aabb;
 mod axis;

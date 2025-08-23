@@ -1,5 +1,5 @@
 use std::{
-    io::{self, ErrorKind},
+    io::{self, BufWriter, ErrorKind, Write},
     str::{FromStr, from_utf8},
 };
 
@@ -13,60 +13,15 @@ pub(crate) struct Image {
 }
 
 impl Image {
-    // currently only loads P3 PPM images (ascii), want to support P6 (binary) images as well
     pub(crate) fn load(name: &str) -> Result<Self, io::Error> {
         let error = Err(io::Error::from(ErrorKind::InvalidInput));
 
-        // let contents = std::fs::read_to_string(name)?;
-
-        // let mut px = Vec::new();
-
-        // let mut lines = contents.lines();
-
-        // if let (Some(_file_type), Some(resolution), Some(_color_depth), mut data) =
-        //     (lines.next(), lines.next(), lines.next(), lines)
-        // {
-        //     let mut res_it = resolution.split_whitespace();
-        //     if let (Some(width_str), Some(height_str)) = (res_it.next(), res_it.next()) {
-        //         if let (Ok(width), Ok(height)) = (width_str.parse(), height_str.parse()) {
-        //             px.reserve(width * height);
-        //             for _ in 0..(width * height) {
-        //                 if let (Some(r), Some(g), Some(b)) = (data.next(), data.next(), data.next())
-        //                 {
-        //                     if let (Ok(r), Ok(g), Ok(b)) =
-        //                         (r.parse::<f32>(), g.parse::<f32>(), b.parse::<f32>())
-        //                     {
-        //                         px.push(Color::new(
-        //                             ((r) / 256.0).min(1.0),
-        //                             ((g) / 256.0).min(1.0),
-        //                             ((b) / 256.0).min(1.0),
-        //                         ));
-        //                     }
-        //                 } else {
-        //                     return Err(io::Error::from(ErrorKind::InvalidInput));
-        //                 }
-        //             }
-
-        //             return Ok(Image {
-        //                 width,
-        //                 height,
-        //                 pixels: px,
-        //             });
-        //         }
-        //     }
-        // }
-
-        // Err(io::Error::from(ErrorKind::InvalidInput))
-
-        // assumes first three lines are the PPM header and rest is image data,
-        // would break if there is a comment like the one GIMP leaves on the second line >:(
-
         let contents = std::fs::read(name)?;
 
-        let file_type = &contents[0..=1];
         let mut header = contents.as_slice().splitn(4, |&b| b == b'\n');
 
-        if let (Some(file_type), Some(resolution), Some(color_depth), Some(data)) =
+        // assuming color depth is 256 for now
+        if let (Some(file_type), Some(resolution), Some(_color_depth), Some(data)) =
             (header.next(), header.next(), header.next(), header.next())
         {
             let width;
@@ -160,6 +115,41 @@ impl Image {
             height,
             pixels: px,
         })
+    }
+
+    pub(crate) fn write_p6(width: u32, height: u32, pixels: &[Color]) -> std::io::Result<()> {
+        let mut out = BufWriter::new(std::fs::File::create("render.ppm")?);
+        writeln!(out, "P6")?;
+        writeln!(out, "{} {}", width, height)?;
+        writeln!(out, "255")?;
+
+        for i in 0..height {
+            for j in 0..width {
+                out.write_all(&pixels[(j + i * width) as usize].bytes())?;
+            }
+        }
+
+        out.flush()?;
+        Ok(())
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn write_p3(width: u32, height: u32, pixels: &[Color]) -> std::io::Result<()> {
+        let mut out = BufWriter::new(std::fs::File::create("render.ppm")?);
+        writeln!(out, "P3")?;
+        writeln!(out, "{} {}", width, height)?;
+        writeln!(out, "255")?;
+
+        for i in 0..height {
+            for j in 0..width {
+                let pixel = &pixels[(j + i * width) as usize].bytes();
+                let ascii = format!("{} {} {}\n", &pixel[0], &pixel[1], &pixel[2]);
+                out.write_all(ascii.as_bytes())?;
+            }
+        }
+
+        out.flush()?;
+        Ok(())
     }
 
     pub(crate) fn sample(&self, w: usize, h: usize) -> Option<Color> {

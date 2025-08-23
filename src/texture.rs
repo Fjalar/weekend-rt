@@ -30,7 +30,7 @@ impl Texture {
                 let i = (u * image.width as f32) as usize;
                 let j = (v * image.height as f32) as usize;
                 if let Some(pixel) = image.sample(i, j) {
-                    let color_scale = 1.0 / 255.0;
+                    // let color_scale = 1.0 / 255.0;
                     pixel
                 } else {
                     Color::new(1.0, 0.0, 1.0)

@@ -2,14 +2,13 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use rayon::prelude::*;
 use std::{
-    io::{BufWriter, Write},
     sync::Arc,
     thread::{self},
 };
 
 use crate::{
-    bvh::BVHNode, color::Color, interval::Interval, point::Point, primitive::Primitive, ray::Ray,
-    vec3::Vec3,
+    bvh::BVHNode, color::Color, image::Image, interval::Interval, point::Point,
+    primitive::Primitive, ray::Ray, vec3::Vec3,
 };
 
 #[allow(dead_code)]
@@ -98,19 +97,7 @@ impl Camera {
     }
 
     pub(crate) fn write_img(&self, pixels: &[Color]) -> std::io::Result<()> {
-        let mut out = BufWriter::new(std::fs::File::create("render.ppm")?);
-        writeln!(out, "P6")?;
-        writeln!(out, "{} {}", self.image_width, self.image_height)?;
-        writeln!(out, "255")?;
-
-        for i in 0..self.image_height {
-            for j in 0..self.image_width {
-                out.write_all(&pixels[(j + i * self.image_width) as usize].bytes())?;
-            }
-        }
-
-        out.flush()?;
-        Ok(())
+        Image::write_p6(self.image_width, self.image_height, pixels)
     }
 
     #[allow(clippy::too_many_arguments)]
