@@ -1,8 +1,7 @@
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
-use rayon::prelude::*;
 use std::{
-    sync::Arc,
+    sync::{Arc, Mutex},
     thread::{self},
 };
 
@@ -54,37 +53,46 @@ impl Camera {
 
         println!("Rendering on {num_threads} thread(s)");
 
-        let images = (0..num_threads)
-            .into_par_iter()
-            .map(|idx| {
-                let mut rng = ChaCha8Rng::seed_from_u64(idx as u64);
-                let bvh_pointer = bvh_root.clone();
+        let images = Arc::new(Mutex::new(Vec::<Vec<Color>>::new()));
+
+        thread::scope(|s| {
+            for idx in 0..num_threads {
+                let images_clone = images.clone();
                 let world_pointer = world.clone();
+                let bvh_pointer = bvh_root.clone();
+                let max_depth = self.max_depth;
 
-                let mut output = Vec::<Color>::new();
-                for i in 0..self.image_height {
-                    for j in 0..self.image_width {
-                        let pixel_color = (0..samples_per_pixel_per_thread).fold(
-                            Color::new(0.0, 0.0, 0.0),
-                            |acc, _| {
-                                let ray = Self::get_ray(self, &mut rng, j, i);
+                s.spawn(move || {
+                    let mut rng = ChaCha8Rng::seed_from_u64(idx as u64);
+                    let mut output = Vec::<Color>::new();
+                    for i in 0..self.image_height {
+                        for j in 0..self.image_width {
+                            let pixel_color = (0..samples_per_pixel_per_thread).fold(
+                                Color::new(0.0, 0.0, 0.0),
+                                |acc, _| {
+                                    let ray = Self::get_ray(self, &mut rng, j, i);
 
-                                acc + Self::ray_color(
-                                    &mut rng,
-                                    ray,
-                                    self.max_depth,
-                                    &bvh_pointer,
-                                    &world_pointer,
-                                )
-                            },
-                        ) / samples_per_pixel_per_thread as f32;
+                                    acc + Self::ray_color(
+                                        &mut rng,
+                                        ray,
+                                        max_depth,
+                                        &bvh_pointer,
+                                        &world_pointer,
+                                    )
+                                },
+                            ) / samples_per_pixel_per_thread as f32;
 
-                        output.push(pixel_color);
+                            output.push(pixel_color);
+                        }
                     }
-                }
-                output
-            })
-            .collect::<Vec<Vec<Color>>>();
+                    {
+                        images_clone.lock().unwrap().push(output);
+                    }
+                });
+            }
+        });
+
+        let images = images.lock().unwrap();
 
         let avg = (0..(self.image_height * self.image_width) as usize)
             .map(|idx| {
