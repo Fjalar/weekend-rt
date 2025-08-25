@@ -68,7 +68,7 @@ impl BVHNode {
         ray_interval: crate::interval::Interval,
         world: &Arc<Vec<Primitive>>,
     ) -> Option<crate::hittable::HitRecord> {
-        if self.aabb.hit(ray, ray_interval).is_some() {
+        if self.aabb.hit(ray, ray_interval) {
             if let (Some(left), Some(right)) = (&self.left, &self.right) {
                 let hit_left = left.hit(ray, ray_interval, world);
                 let hit_right = right.hit(ray, ray_interval, world);

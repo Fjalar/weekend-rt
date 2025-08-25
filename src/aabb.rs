@@ -1,9 +1,4 @@
-use std::sync::Arc;
-
-use crate::{
-    axis::Axis, color::Color, hittable::HitRecord, interval::Interval, material::Material,
-    point::Point, vec3::Vec3,
-};
+use crate::{axis::Axis, interval::Interval, point::Point};
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Aabb {
@@ -85,7 +80,7 @@ impl Aabb {
         }
     }
 
-    pub(crate) fn hit(&self, ray: crate::ray::Ray, ray_interval: Interval) -> Option<HitRecord> {
+    pub(crate) fn hit(&self, ray: crate::ray::Ray, ray_interval: Interval) -> bool {
         let mut ray_interval_min = ray_interval.min;
         let mut ray_interval_max = ray_interval.max;
         for &axis in Axis::iter() {
@@ -115,20 +110,10 @@ impl Aabb {
             }
 
             if ray_interval_max <= ray_interval_min {
-                return None;
+                return false;
             }
         }
 
-        // Placeholder Hitrecord, just need to know if it hit or not really.
-        // Warrants restructuring
-        Some(HitRecord {
-            position: Point::new(0.0, 0.0, 0.0),
-            normal: Vec3::new(0.0, 0.0, 0.0),
-            material: Arc::new(Material::Metal(Color::new(0.0, 0.0, 0.0), 0.0)),
-            t: ray_interval_max,
-            u: 0.0,
-            v: 0.0,
-            front_face: true,
-        })
+        true
     }
 }
