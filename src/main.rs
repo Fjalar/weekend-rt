@@ -33,7 +33,7 @@ Choose scene: "
 
     stdin.read_line(&mut input)?;
 
-    let (camera, bvh_root, world) = match input.trim() {
+    let (camera, bvh, world) = match input.trim() {
         "1" => examples::three_spheres(),
         "2" => examples::many_spheres(),
         "3" => examples::checkers(),
@@ -42,7 +42,9 @@ Choose scene: "
         _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
     };
 
-    let pixels = camera.render(bvh_root, world)?;
+    dbg!(&bvh);
+
+    let pixels = camera.render(bvh, world)?;
 
     let res = camera.write_img(&pixels);
     if res.is_ok() {

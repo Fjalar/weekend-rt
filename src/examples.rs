@@ -4,7 +4,7 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 
 use crate::{
-    bvh::BVHNode,
+    bvh::Bvh,
     camera::Camera,
     color::Color,
     image::Image,
@@ -16,7 +16,7 @@ use crate::{
     vec3::Vec3,
 };
 
-pub(crate) fn three_spheres() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
+pub(crate) fn three_spheres() -> (Camera, Arc<Bvh>, Arc<Vec<Primitive>>) {
     let position = Point::new(-2.0, 2.0, 1.0);
     let look_at = Point::new(0.0, 0.0, -1.0);
     let view_up = Vec3::new(0.0, 1.0, 0.0);
@@ -82,14 +82,12 @@ pub(crate) fn three_spheres() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
         )))),
     )));
 
-    let world_count = world.len();
+    let bvh = Arc::new(Bvh::new(&mut world));
 
-    let bvh_root = BVHNode::new(&mut world, 0, world_count);
-
-    (camera, bvh_root, Arc::new(world))
+    (camera, bvh, Arc::new(world))
 }
 
-pub(crate) fn many_spheres() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
+pub(crate) fn many_spheres() -> (Camera, Arc<Bvh>, Arc<Vec<Primitive>>) {
     let position = Point::new(13.0, 2.0, 3.0);
     let look_at = Point::new(0.0, 0.0, 0.0);
     let view_up = Vec3::new(0.0, 1.0, 0.0);
@@ -188,14 +186,12 @@ pub(crate) fn many_spheres() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
         material3,
     )));
 
-    let world_count = world.len();
+    let bvh = Arc::new(Bvh::new(&mut world));
 
-    let bvh_root = BVHNode::new(&mut world, 0, world_count);
-
-    (camera, bvh_root, Arc::new(world))
+    (camera, bvh, Arc::new(world))
 }
 
-pub(crate) fn checkers() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
+pub(crate) fn checkers() -> (Camera, Arc<Bvh>, Arc<Vec<Primitive>>) {
     let position = Point::new(13.0, 2.0, 3.0);
     let look_at = Point::new(0.0, 0.0, 0.0);
     let view_up = Vec3::new(0.0, 1.0, 0.0);
@@ -240,13 +236,12 @@ pub(crate) fn checkers() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
 
     let mut world = vec![sphere1, sphere2];
 
-    let world_count = world.len();
-    let bvh_root = BVHNode::new(&mut world, 0, world_count);
+    let bvh = Arc::new(Bvh::new(&mut world));
 
-    (camera, bvh_root, Arc::new(world))
+    (camera, bvh, Arc::new(world))
 }
 
-pub(crate) fn earth() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
+pub(crate) fn earth() -> (Camera, Arc<Bvh>, Arc<Vec<Primitive>>) {
     let position = Point::new(1.0, 1.0, 12.0);
     let look_at = Point::new(0.0, 0.0, 0.0);
     let view_up = Vec3::new(0.0, 1.0, 0.0);
@@ -283,13 +278,12 @@ pub(crate) fn earth() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
 
     let mut world = vec![globe];
 
-    let world_count = world.len();
-    let bvh_root = BVHNode::new(&mut world, 0, world_count);
+    let bvh = Arc::new(Bvh::new(&mut world));
 
-    (camera, bvh_root, Arc::new(world))
+    (camera, bvh, Arc::new(world))
 }
 
-pub(crate) fn perlin() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
+pub(crate) fn perlin() -> (Camera, Arc<Bvh>, Arc<Vec<Primitive>>) {
     let position = Point::new(13.0, 2.0, 3.0);
     let look_at = Point::new(0.0, 0.0, 0.0);
     let view_up = Vec3::new(0.0, 1.0, 0.0);
@@ -330,8 +324,7 @@ pub(crate) fn perlin() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
 
     let mut world = vec![sphere, ground];
 
-    let world_count = world.len();
-    let bvh_root = BVHNode::new(&mut world, 0, world_count);
+    let bvh = Arc::new(Bvh::new(&mut world));
 
-    (camera, bvh_root, Arc::new(world))
+    (camera, bvh, Arc::new(world))
 }

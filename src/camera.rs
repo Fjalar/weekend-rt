@@ -7,8 +7,8 @@ use std::{
 };
 
 use crate::{
-    bvh::BVHNode, color::Color, image::Image, interval::Interval, point::Point,
-    primitive::Primitive, ray::Ray, vec3::Vec3,
+    bvh::Bvh, color::Color, image::Image, interval::Interval, point::Point, primitive::Primitive,
+    ray::Ray, vec3::Vec3,
 };
 
 #[allow(dead_code)]
@@ -43,7 +43,7 @@ pub(crate) struct Camera {
 impl Camera {
     pub(crate) fn render(
         &self,
-        bvh_root: Arc<BVHNode>,
+        bvh: Arc<Bvh>,
         world: Arc<Vec<Primitive>>,
     ) -> std::io::Result<Box<[Color]>> {
         // Render
@@ -62,7 +62,7 @@ impl Camera {
             for idx in 0..num_threads {
                 let images_clone = images.clone();
                 let world_pointer = world.clone();
-                let bvh_pointer = bvh_root.clone();
+                let bvh_pointer = bvh.clone();
                 let max_depth = self.max_depth;
 
                 s.spawn(move || {
@@ -234,7 +234,7 @@ impl Camera {
         rng: &mut ChaCha8Rng,
         ray: Ray,
         depth: u32,
-        bvh_root: &Arc<BVHNode>,
+        bvh: &Arc<Bvh>,
         world: &Arc<Vec<Primitive>>,
     ) -> Color {
         if depth == 0 {
@@ -243,13 +243,13 @@ impl Camera {
 
         let ray_interval = Interval::new(0.001, f32::INFINITY);
 
-        let potential_hit = bvh_root.hit(ray, ray_interval, world);
+        let potential_hit = bvh.hit(0, ray, ray_interval, world);
 
         if let Some(hit) = potential_hit {
             let (scattered_ray, attenuation) =
                 hit.material
                     .scatter(rng, ray, hit.t, hit.u, hit.v, hit.normal, hit.front_face);
-            return attenuation * Self::ray_color(rng, scattered_ray, depth - 1, bvh_root, world);
+            return attenuation * Self::ray_color(rng, scattered_ray, depth - 1, bvh, world);
         }
 
         // Background gradient
