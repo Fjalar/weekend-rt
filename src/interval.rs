@@ -65,4 +65,8 @@ impl Interval {
         let padding = delta / 2.0;
         Interval::new(self.min - padding, self.max + padding);
     }
+
+    pub(crate) fn middle(&self) -> f32 {
+        self.min + self.size() / 2.0
+    }
 }

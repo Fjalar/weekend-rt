@@ -2,7 +2,7 @@ use std::slice::Iter;
 
 use rand::distr::{Distribution, StandardUniform};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum Axis {
     X,
     Y,

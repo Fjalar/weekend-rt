@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use crate::{aabb::Aabb, hittable::HitRecord, interval::Interval, primitive::Primitive, ray::Ray};
+use crate::{
+    aabb::Aabb, axis::Axis, hittable::HitRecord, interval::Interval, primitive::Primitive, ray::Ray,
+};
 
 #[derive(Debug)]
 pub(crate) struct Bvh {
@@ -29,18 +31,38 @@ impl Bvh {
     pub(crate) fn subdivide(&mut self, idx_of_target: usize, objects: &mut Vec<Primitive>) {
         let target = &self.nodes[idx_of_target];
 
-        if target.primitive_count > 1 {
-            let longest_axis = target.aabb.longest_axis();
+        let parent_cost = target.aabb.half_area() * target.primitive_count as f32;
+
+        if true {
+            let mut best_axis = Axis::X;
+            let mut best_idx = 0;
+            let mut best_cost = f32::MAX;
+            for axis in Axis::iter() {
+                for idx in 0..(target.primitive_count as usize) {
+                    let cost = Self::calculate_sah(
+                        idx,
+                        &objects[(target.left as usize)
+                            ..((target.left + target.primitive_count) as usize)],
+                    );
+                    if cost < best_cost {
+                        best_cost = cost;
+                        best_axis = *axis;
+                        best_idx = idx;
+                    }
+                }
+            }
+
+            if best_cost > parent_cost {
+                return;
+            }
 
             let key_lambda = |a: &Primitive, b: &Primitive| {
-                a.bounding_box()
-                    .axis_interval(longest_axis)
-                    .min
-                    .total_cmp(&b.bounding_box().axis_interval(longest_axis).min)
+                (a.bounding_box().axis_interval(best_axis).middle())
+                    .total_cmp(&b.bounding_box().axis_interval(best_axis).middle())
             };
 
             let start = target.left as usize;
-            let mid = (target.left + target.primitive_count / 2) as usize;
+            let mid = (target.left + best_idx as u32) as usize;
             let end = (target.left + target.primitive_count) as usize;
 
             objects.as_mut_slice()[start..end].sort_by(key_lambda);
@@ -71,6 +93,20 @@ impl Bvh {
             self.subdivide(idx_of_next, objects);
             self.subdivide(idx_of_next + 1, objects);
         }
+    }
+
+    fn calculate_sah(idx: usize, prims: &[Primitive]) -> f32 {
+        let mut left_box = Aabb::empty();
+        prims[0..idx]
+            .iter()
+            .for_each(|prim| left_box.expand(prim.bounding_box()));
+
+        let mut right_box = Aabb::empty();
+        prims[idx..]
+            .iter()
+            .for_each(|prim| right_box.expand(prim.bounding_box()));
+
+        left_box.half_area() * idx as f32 + right_box.half_area() * (prims.len() - idx) as f32
     }
 
     pub(crate) fn hit(

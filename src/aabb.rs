@@ -66,6 +66,7 @@ impl Aabb {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn longest_axis(&self) -> Axis {
         let xy = self.x.size() > self.y.size();
         let yz = self.y.size() > self.z.size();
@@ -78,6 +79,11 @@ impl Aabb {
         } else {
             Axis::Z
         }
+    }
+
+    pub(crate) fn half_area(&self) -> f32 {
+        let (x, y, z) = (self.x.size(), self.y.size(), self.z.size());
+        x * y + y * z + z * x
     }
 
     pub(crate) fn hit(&self, ray: crate::ray::Ray, ray_interval: Interval) -> bool {

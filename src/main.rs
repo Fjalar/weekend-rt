@@ -42,7 +42,7 @@ Choose scene: "
         _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
     };
 
-    dbg!(&bvh);
+    // dbg!(&bvh);
 
     let pixels = camera.render(bvh, world)?;
 
