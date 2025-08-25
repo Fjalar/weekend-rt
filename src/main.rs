@@ -44,8 +44,6 @@ Choose scene: "
 
     let pixels = camera.render(bvh_root, world)?;
 
-    println!("Rendered image");
-
     let res = camera.write_img(&pixels);
     if res.is_ok() {
         println!("Written image to disk");

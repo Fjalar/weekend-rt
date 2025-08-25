@@ -3,6 +3,7 @@ use rand_chacha::ChaCha8Rng;
 use std::{
     sync::{Arc, Mutex},
     thread::{self},
+    time::Instant,
 };
 
 use crate::{
@@ -46,6 +47,8 @@ impl Camera {
         world: Arc<Vec<Primitive>>,
     ) -> std::io::Result<Box<[Color]>> {
         // Render
+
+        let start_of_render = Instant::now();
 
         let num_threads = usize::from(thread::available_parallelism()?);
 
@@ -100,6 +103,11 @@ impl Camera {
                     / images.len() as f32
             })
             .collect::<Box<[Color]>>();
+
+        println!(
+            "Rendered in {:.2} seconds",
+            start_of_render.elapsed().as_secs_f32()
+        );
 
         Ok(avg)
     }
