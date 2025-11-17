@@ -12,8 +12,8 @@
 Run using `cargo run --release`, choose scene by entering a number when prompted, wait for render to finish, then view the resulting `render.ppm` in the root directory of the project
 
 ## Example renders
-![Render: three spheres](media/three_spheres.png?raw=true)
 ![Render: many spheres](media/many_spheres.png?raw=true)
+![Render: three spheres](media/three_spheres.png?raw=true)
 ![Render: checkers](media/checkers.png?raw=true)
 ![Render: earth](media/earth.png?raw=true)
 ![Render: perlin](media/perlin.png?raw=true)
