@@ -2,7 +2,7 @@
 [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html), done in Rust
 
 ## Features
-- Raytracing of spheres
+- Multi-threaded CPU raytracing of spheres
 - Multiple materials, image textures, and noise textures
 - Only dependencies for randomness (currently `rand` and `rand_chacha`)
 - Serialization of PPM files for render output
