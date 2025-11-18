@@ -19,6 +19,21 @@ impl Aabb {
             y: Interval::empty(),
             z: Interval::empty(),
         }
+        .pad_to_minimums()
+    }
+
+    pub(crate) fn pad_to_minimums(self) -> Aabb {
+        let delta = 0.0001;
+        if self.x.size() < delta {
+            self.x.expand(delta);
+        }
+        if self.y.size() < delta {
+            self.y.expand(delta);
+        }
+        if self.z.size() < delta {
+            self.z.expand(delta);
+        }
+        self
     }
 
     #[allow(dead_code)]
@@ -34,6 +49,7 @@ impl Aabb {
         self.x = Interval::tight(self.x, box1.x);
         self.y = Interval::tight(self.y, box1.y);
         self.z = Interval::tight(self.z, box1.z);
+        self.pad_to_minimums();
     }
 
     pub(crate) fn axis_interval(&self, axis: Axis) -> Interval {
@@ -64,6 +80,7 @@ impl Aabb {
                 Interval::new(b.z, a.z)
             },
         }
+        .pad_to_minimums()
     }
 
     pub(crate) fn longest_axis(&self) -> Axis {

@@ -14,8 +14,21 @@ pub(crate) struct SphereParams {
 }
 
 #[derive(Debug)]
+pub(crate) struct QuadParams {
+    pub(crate) q: Point,
+    pub(crate) u: Vec3,
+    pub(crate) v: Vec3,
+    pub(crate) w: Vec3,
+    pub(crate) material: Arc<Material>,
+    pub(crate) aabb: Aabb,
+    pub(crate) normal: Vec3,
+    pub(crate) d: f32,
+}
+
+#[derive(Debug)]
 pub(crate) enum Primitive {
     Sphere(SphereParams),
+    Quad(QuadParams),
 }
 
 impl Primitive {
@@ -56,12 +69,50 @@ impl Primitive {
                     params.material.clone(),
                 ))
             }
+            Primitive::Quad(params) => {
+                let denominator = params.normal.dot(ray.direction);
+
+                // Check if parallell to plane
+                if denominator.abs() < 1e-8 {
+                    return None;
+                }
+
+                let t = (params.d - params.normal.dot(ray.origin.into())) / denominator;
+                if !ray_inteval.contains(t) {
+                    return None;
+                }
+
+                // Ray intersection with plane
+                let intersection = ray.at(t);
+                let planar_hitpoint_vector = intersection - params.q;
+                let alpha = params.w.dot(planar_hitpoint_vector.cross(params.v));
+                let beta = params.w.dot(params.u.cross(planar_hitpoint_vector));
+
+                // println!("{alpha},{beta}");
+
+                if !is_interior(alpha, beta) {
+                    return None;
+                }
+
+                let front_face = params.normal.dot(ray.direction).is_sign_positive();
+
+                Some(HitRecord {
+                    position: intersection,
+                    normal: params.normal,
+                    material: params.material.clone(),
+                    t,
+                    u: alpha,
+                    v: beta,
+                    front_face,
+                })
+            }
         }
     }
 
     pub(crate) fn bounding_box(&self) -> &Aabb {
         match self {
             Primitive::Sphere(params) => params.bounding_box(),
+            Primitive::Quad(params) => params.bounding_box(),
         }
     }
 
@@ -97,36 +148,34 @@ impl SphereParams {
     }
 }
 
-// impl Hittable for Sphere {
-//     fn hit(&self, ray: Ray, ray_inteval: Interval) -> Option<HitRecord> {
-//         let ray_to_sphere = self.center - ray.origin;
-//         let a = ray.direction.length_squared();
-//         let h = ray.direction.dot(ray_to_sphere);
-//         let c = ray_to_sphere.length_squared() - self.radius * self.radius;
-//         let discriminant = h * h - a * c;
+impl QuadParams {
+    pub(crate) fn new(q: Point, u: Vec3, v: Vec3, material: Arc<Material>) -> QuadParams {
+        let mut aabb = Aabb::new_between(q, q + u + v);
+        aabb.expand(&Aabb::new_between(q + u, q + v));
+        let n = u.cross(v);
+        let normal = n.unit();
+        let d = normal.dot(q.into());
+        let w = n / n.dot(n);
 
-//         if discriminant < 0.0 {
-//             return None;
-//         }
-//         let sqrt_d = discriminant.sqrt();
+        QuadParams {
+            q,
+            u,
+            v,
+            w,
+            material,
+            aabb,
+            normal,
+            d,
+        }
+    }
 
-//         // Find nearest root that lies in the acceptable range of ray_tmin..ray_tmax
-//         let mut root = (h - sqrt_d) / a;
-//         if !ray_inteval.surrounds(root) {
-//             root = (h + sqrt_d) / a;
-//             if !ray_inteval.surrounds(root) {
-//                 return None;
-//             }
-//         }
+    fn bounding_box(&self) -> &Aabb {
+        &self.aabb
+    }
+}
 
-//         let position = ray.at(root);
-//         let outward_normal = (position - self.center) / self.radius;
+pub(crate) fn is_interior(a: f32, b: f32) -> bool {
+    let unit_interval = Interval::new(0.0, 1.0);
 
-//         Some(HitRecord::new(
-//             ray,
-//             root,
-//             outward_normal,
-//             self.material.clone(),
-//         ))
-//     }
-// }
+    unit_interval.contains(a) && unit_interval.contains(b)
+}

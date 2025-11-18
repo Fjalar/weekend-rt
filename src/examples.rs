@@ -11,7 +11,7 @@ use crate::{
     material::Material,
     noise::Perlin,
     point::Point,
-    primitive::{Primitive, SphereParams},
+    primitive::{Primitive, QuadParams, SphereParams},
     texture::Texture,
     vec3::Vec3,
 };
@@ -329,6 +329,86 @@ pub(crate) fn perlin() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
     ));
 
     let mut world = vec![sphere, ground];
+
+    let world_count = world.len();
+    let bvh_root = BVHNode::new(&mut world, 0, world_count);
+
+    (camera, bvh_root, Arc::new(world))
+}
+
+pub(crate) fn quads() -> (Camera, Arc<BVHNode>, Arc<Vec<Primitive>>) {
+    let position = Point::new(0.0, 0.0, 9.0);
+    let look_at = Point::new(0.0, 0.0, 0.0);
+    let view_up = Vec3::new(0.0, 1.0, 0.0);
+    let focal_length = 1.0;
+    let defocus_angle = 0.0;
+    let aspect_ratio = 1.0;
+    let image_width = 400;
+    let vertical_fov = 80.0;
+    let samples_per_pixel = 100;
+    let max_depth = 50;
+
+    let camera = Camera::new(
+        position,
+        look_at,
+        view_up,
+        focal_length,
+        defocus_angle,
+        aspect_ratio,
+        image_width,
+        vertical_fov,
+        samples_per_pixel,
+        max_depth,
+    );
+
+    let left_red = Arc::new(Material::Lambertian(Arc::new(Texture::from_color(
+        Color::new(1.0, 0.2, 0.2),
+    ))));
+    let back_green = Arc::new(Material::Lambertian(Arc::new(Texture::from_color(
+        Color::new(0.2, 1.0, 0.2),
+    ))));
+    let right_blue = Arc::new(Material::Lambertian(Arc::new(Texture::from_color(
+        Color::new(0.2, 0.2, 1.0),
+    ))));
+    let upper_orange = Arc::new(Material::Lambertian(Arc::new(Texture::from_color(
+        Color::new(1.0, 0.5, 0.0),
+    ))));
+    let lower_teal = Arc::new(Material::Lambertian(Arc::new(Texture::from_color(
+        Color::new(0.2, 0.8, 0.8),
+    ))));
+
+    let mut world = vec![
+        Primitive::Quad(QuadParams::new(
+            Point::new(-3.0, -2.0, 5.0),
+            Vec3::new(0.0, 0.0, -4.0),
+            Vec3::new(0.0, 4.0, 0.0),
+            left_red,
+        )),
+        Primitive::Quad(QuadParams::new(
+            Point::new(-2.0, -2.0, 0.0),
+            Vec3::new(4.0, 0.0, 0.0),
+            Vec3::new(0.0, 4.0, 0.0),
+            back_green,
+        )),
+        Primitive::Quad(QuadParams::new(
+            Point::new(3.0, -2.0, 1.0),
+            Vec3::new(0.0, 0.0, 4.0),
+            Vec3::new(0.0, 4.0, 0.0),
+            right_blue,
+        )),
+        Primitive::Quad(QuadParams::new(
+            Point::new(-2.0, 3.0, 1.0),
+            Vec3::new(4.0, 0.0, 0.0),
+            Vec3::new(0.0, 0.0, 4.0),
+            upper_orange,
+        )),
+        Primitive::Quad(QuadParams::new(
+            Point::new(-2.0, -3.0, 5.0),
+            Vec3::new(4.0, 0.0, 0.0),
+            Vec3::new(0.0, 0.0, -4.0),
+            lower_teal,
+        )),
+    ];
 
     let world_count = world.len();
     let bvh_root = BVHNode::new(&mut world, 0, world_count);

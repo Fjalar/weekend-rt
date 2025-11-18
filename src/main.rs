@@ -24,6 +24,7 @@ fn main() -> std::io::Result<()> {
 3: Checkers
 4: Earth
 5: Perlin
+6: Quads
 Choose scene: "
     );
 
@@ -39,6 +40,7 @@ Choose scene: "
         "3" => examples::checkers(),
         "4" => examples::earth(),
         "5" => examples::perlin(),
+        "6" => examples::quads(),
         _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
     };
 
