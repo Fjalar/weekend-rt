@@ -26,7 +26,7 @@ Run using `cargo run --release`, choose scene by entering a number when prompted
 - Optimizations (e.g. surface area heuristic for BVH)
 
 ## Resources
-[_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
-[_Ray Tracing: The Next Week_](https://raytracing.github.io/books/RayTracingTheNextWeek.html)
-[_How to Build a BVH_](https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/)
-[_Physically Based Rendering: From Theory To Implementation_](https://pbr-book.org/)
+- [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
+- [_Ray Tracing: The Next Week_](https://raytracing.github.io/books/RayTracingTheNextWeek.html)
+- [_How to Build a BVH_](https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/)
+- [_Physically Based Rendering: From Theory To Implementation_](https://pbr-book.org/)
